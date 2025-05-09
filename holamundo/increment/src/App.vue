@@ -1,21 +1,18 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import Contador from './components/ContadorComponent.vue'
-  // import IncrementalAnimation from './components/IncrementalAnimation.vue'
-  const target = ref(0)
-  const newTarget = ref(0)
-  const regresivo = ref(true)
-  const animationTime = ref(0.1)
-  const componentKey = ref(0)
+  const target = ref<number | null>(null)
+  const newTarget = ref(null)
+  const regresivo = ref(false) // Progresivo por defecto
+  const animationSpeed = ref(0.5) // actualizar cada 0.5 segundos
+  const key = ref(0)
 
   const setTarget = () => {
     target.value = newTarget.value
-    componentKey.value++
+    // Cambiar la key fuerza a Vue a destruir y volver a montar el componente hijo
+    key.value++
   }
-  //TODO: hacer que cambie la dirección del contador sin reiniciar el componente
-  const changeDirection = () => { 
-    componentKey.value++
-  }
+  
 </script>
 
 <template>
@@ -27,27 +24,43 @@
       <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
     </a>
   </div>
-  <!-- <HelloWorld :msg="msg" :num="target" /> -->
-   <p>
-    <!-- <IncrementalAnimation :start="0" :target="target" :animationTime="1" /> -->
-   </p>
-   <div>
-      <form @submit.prevent="setTarget">
-        <input type="number" v-model.number="newTarget" placeholder="Set target" />
-        <button type="submit">Contar</button>
-        <br>
-        <input type="checkbox" v-model="regresivo" @change="changeDirection"/>
-        <label for="regresivo">Regresivo</label>
-      </form>
+  <div>
+    <h1>Contador</h1>
+
+    <form @submit.prevent="setTarget">
+      <input type="number" v-model.number="newTarget" placeholder="Set target" />
+      <button type="submit">Contar</button>
+      <br>
+      <input id="regresivo" type="checkbox" v-model="regresivo"/>
+      <label for="regresivo">Regresivo</label>
+      <br>
+      <br>
+    
+      <label for="animationSpeed">Velocidad</label>
+      <br>
+      <span>
+        rápido
+        <input id="animationSpeed" type="range" v-model.number="animationSpeed" min="0.1" max="1" step="0.1" placeholder="Velocidad" />
+        lento
+      </span>
+    </form>
+  </div>
+  <div v-if="target !== null">
+    <p :class="[regresivo ? 'text-red-500' : 'text-green-500']">
+      <span v-if="!regresivo">Cuenta hasta {{ target }}</span>
+      <span v-else>Cuenta hasta {{ 0 }}</span>
+    </p>
+     <p>Contador: <Contador :target="target" :animationSpeed="animationSpeed" :regresivo="regresivo" :key="key"  /></p>
    </div>
-   <p>Empieza desde 
-    <span v-if="regresivo">{{ target }}</span>
-    <span v-else>{{ 0 }}</span>
-  </p>
-   <p>Contador: <Contador :target="target" :animationTime="animationTime" :regresivo="regresivo" :key="componentKey"/></p>
 </template>
 
 <style scoped>
+.text-red-500 {
+  color: #f00;
+}
+.text-green-500 {
+  color: #0f0;
+}
 .logo {
   height: 6em;
   padding: 1.5em;

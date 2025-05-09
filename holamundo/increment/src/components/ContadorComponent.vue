@@ -1,49 +1,62 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 
-const {
-    start = 0,
-    target,
-    animationTime = 1,
-    regresivo = false,
-} = defineProps<{
-    start?: number,
-    target: number,
-    animationTime?: number,
-    regresivo?: boolean
+const props = defineProps<{
+  start?: number,
+  target: number,
+  animationSpeed?: number,
+  regresivo?: boolean
 }>()
 
-const segundos = 1000 //ms a s
-const ats = animationTime * segundos
-const display = ref(regresivo ? target : start)
-const current = ref(start)
-let interval: ReturnType<typeof setInterval> | null = null
+const start = props.start ?? 0
+const animationSpeed = ref(props.animationSpeed ?? 1)
+const segundos = 1000
+const ats = ref(animationSpeed.value * segundos)
+
+const current = ref(props.regresivo ? props.target : start)
+const direction = ref(props.regresivo ? -1 : 1)
+const interval = ref<ReturnType<typeof setInterval> | null>(null)
 
 function startCounting() {
-    if(start === target){
-        console.log('Contador ya en el valor objetivo')
-        return
-    }
-    current.value = start
-    display.value = regresivo ? target  : current.value
-    console.log('Contador iniciado')
-    const interval = setInterval(() => {
-        current.value++
-        display.value = regresivo ? target - current.value : current.value 
-        // resta = Math.abs(current.value - target)
-        if(current.value >= target){
-            clearInterval(interval)
-        }
-    }, ats)
+  if (interval.value) clearInterval(interval.value)
 
+  interval.value = setInterval(() => {
+    current.value += direction.value
+
+    const reachedEnd = props.regresivo
+      ? current.value <= 0
+      : current.value >= props.target
+
+    if (reachedEnd) {
+      clearInterval(interval.value!)
+    }
+  }, ats.value)
 }
-watch(() => target, () => {
-    startCounting()
+
+onMounted(() => {
+  startCounting()
+})
+
+watch(() => props.regresivo, (newVal) => {
+  console.log('Cambio de dirección:', newVal ? 'Regresivo' : 'Progresivo')
+  direction.value = newVal ? -1 : 1
 }, { immediate: true })
-// onMounted(() => {
-// })
+
+watch(() => props.animationSpeed, (newVal) => {
+    console.log('Cambio de velocidad:', newVal)
+    animationSpeed.value = newVal ?? 1
+    ats.value = animationSpeed.value * segundos
+    if (interval.value) {
+        clearInterval(interval.value)
+        startCounting()
+    }
+}, { immediate: true })
+
+onUnmounted(() => {
+  if (interval.value) clearInterval(interval.value)
+})
 </script>
 
 <template>
-    {{ display }}
+    {{ current }}
 </template>

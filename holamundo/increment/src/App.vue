@@ -1,10 +1,12 @@
 <script setup lang="ts">
   import { ref } from 'vue'
+  type RegresivoState = -1 | 0 | 1
+  
   import Contador from './components/ContadorComponent.vue'
   const target = ref<number | null>(null)
   const newTarget = ref(null)
-  const regresivo = ref(false) // Progresivo por defecto
-  const animationSpeed = ref(0.5) // actualizar cada 0.5 segundos
+  const regresivo = ref<RegresivoState>(0) // Progresivo por defecto
+  const animationSpeed = ref(0.5) // actualizar cada 0.5 segundos por defecto
   const key = ref(0)
 
   const setTarget = () => {
@@ -31,7 +33,7 @@
       <input type="number" v-model.number="newTarget" placeholder="Set target" />
       <button type="submit">Contar</button>
       <br>
-      <input id="regresivo" type="checkbox" v-model="regresivo"/>
+      <input id="regresivo" type="checkbox" v-model.number="regresivo"/>
       <label for="regresivo">Regresivo</label>
       <br>
       <br>
@@ -45,13 +47,27 @@
       </span>
     </form>
   </div>
+  <!-- ¿Por qué no se oculta cuando dejo el target en null desde el formulario? -->
   <div v-if="target !== null">
     <p :class="[regresivo ? 'text-red-500' : 'text-green-500']">
       <span v-if="!regresivo">Cuenta hasta {{ target }}</span>
       <span v-else>Cuenta hasta {{ 0 }}</span>
     </p>
-     <p>Contador: <Contador :target="target" :animationSpeed="animationSpeed" :regresivo="regresivo" :key="key"  /></p>
-   </div>
+     <h1 :class="[regresivo ? 'text-red-500' : 'text-green-500']"> <Contador :target="target" :animationSpeed="animationSpeed" :regresivo="regresivo" :key="key"  /></h1>
+     <p>Contador regresivo: {{ regresivo }}</p>
+     <p>Velocidad: {{ animationSpeed }}</p>
+  </div>
+  <div v-if="target !== null">
+    <h2>Otras pruebas</h2>
+    <p>Contador sin opciones y con velocidad por defecto</p>
+    <h1 class='text-green-500'> <Contador :target="target" :key="key"  /></h1>
+    <p>Regresión definiendo un target menor que el start</p>
+    <h1 class='text-red-500'> <Contador :start="100" :target="5" :animationSpeed="animationSpeed" :key="key" /></h1>
+    <p> Contador empezando por 50 y terminando en 200</p>
+    <h1 :class="[regresivo ? 'text-red-500' : 'text-green-500']"> <Contador :start="50" :target="200" :animationSpeed="animationSpeed" :regresivo="regresivo" :key="key" /></h1>
+
+
+  </div>
 </template>
 
 <style scoped>

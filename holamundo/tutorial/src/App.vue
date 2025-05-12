@@ -1,64 +1,37 @@
 <script setup lang="ts">
 // import HelloWorld from './components/HelloWorld.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import  ShoppingList  from './components/ShoppingList.vue'
+import UrlForm from './components/urlForm.vue'
+import ReactivityFundamentals from './components/ReactivityFundamentals.vue'
 const header = ref('Shopping List App')
-type Item = {
-  id: number,
-  label: string
-}
-const items = ref<Item[]>([
-  {
-    id: 0,
-    label: "10 party hats"
-  },
-  {
-    id: 1,
-    label: "2 board games"
-  },
-  {
-    id: 2,
-    label: "20 cups"
-  },
-  {
-    id: 3,
-    label: "Test"
-  }
-
-])
-const newItem = ref('')
-function addItem(item: string){
-  items.value.push(
-    {
-      id: items.value.length,
-      label: item
-    }
-  )
-  newItem.value = ''
-}
-function delItem(id: number){
-  items.value = items.value.filter(item => item.id !== id )
+const editing = ref(false)
+const toggleForm = () => {
+  editing.value = !editing.value
 }
 </script>
 
 <template>
-  <h1>{{ header }}</h1>
-  <form @submit.prevent="addItem(newItem)" class="add-item-form">
-    <input required v-model="newItem" type="text" placeholder="Add an item">
-    <button class="btn btn-primary">
-      Save item
+  <div class="header">
+    <h1>{{ header }}</h1>
+    <button @click="toggleForm" class="btn btn-primary">
+      {{ editing ? 'Cancel' : 'Edit' }}
     </button>
-  </form>
-  
-  {{newItem}}
-  <ul>
-    <li 
-      v-for="{id, label} in items"
-      :key="id"
-    >{{label}} <span @click="delItem(id)" style="margin-left: 15px;color:red">[eliminar]</span></li>
-  </ul>
+  </div>
+  <ShoppingList :editing="editing" />
+  <UrlForm />
+  <h1>Counter</h1>
+  <div class="centered">
+    <ReactivityFundamentals />
+  </div>
 </template>
 
 <style scoped>
+.centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .logo {
   height: 6em;
   padding: 1.5em;

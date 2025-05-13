@@ -1,17 +1,45 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import type { Todo } from '@/types'
 import RemoveTask from '@/components/RemoveTask.vue'
+import type { Todo } from '@/types/todo';
 
 const props = defineProps<{
-    todo: Todo,
-    removeTodo: (t: Todo) => void
-  }>()
-const todo = reactive<Todo>(props.todo) // Assuming you want to work with the first todo item
+  todo: Todo,
+  toggle: (id: number) => void,
+  remove: (id: number) => void
+}>()
+
+
 </script>
 <template>
-    <li :key="todo.id" :class="{ completed: todo.completed }" @click="todo.completed = !todo.completed">
-      <span :class="{ completed: todo.completed }">{{ todo.text }}</span>
-      <RemoveTask :remove-todo="(t: Todo) => props.todos.filter(todo => todo.id !== t.id)" :todos="props.todos" :deleteTodo="todo" />
+    <li
+      v-if="!todo.oculto"
+      :key="props.todo.id"
+      :class="{ strikeout: props.todo.done }"
+      class="todo-item"
+      @click="props.toggle(props.todo.id)"
+      >
+      <span :class="{ strikeout: props.todo.done }">{{ props.todo.text }}</span>
+      <RemoveTask :remove="remove" :id="todo.id"/>
     </li>
 </template>
+
+<style scoped>
+.todo-item{
+  margin-bottom: 0px;
+  display: list-item !important;
+  list-style: inherit !important;
+}
+.todo-item > span{
+  margin-right: 15px;
+  padding: 0.3rem 0.55rem;
+  display: inline-block;
+}
+.strikeout {
+  text-decoration: line-through;
+  color: #b8c2cc;
+}
+
+.strikeout:hover {
+  color: #8795a1;
+}
+</style>

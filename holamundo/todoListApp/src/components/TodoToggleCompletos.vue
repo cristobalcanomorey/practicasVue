@@ -9,7 +9,7 @@ const {
 const hayCompletados = computed(() => (todos.value.filter(t => t.done).length > 0))
 const hayOcultos = computed(() => (todos.value.filter(t => t.oculto).length > 0))
 
-const btnText = computed(() => ((hayOcultos? 'Mostrar ': 'Ocultar ') + 'completados'))
+const btnText = computed(() => ((hayOcultos.value? 'Mostrar ': 'Ocultar ') + 'completados'))
 
 </script>
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TodoList from '@/components/TodoList.vue';
+import TodoListGroup from '@/components/TodoListGroup.vue';
 import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue';
 </script>
 
@@ -14,7 +15,7 @@ import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue';
   </header>
 
   <main>
-    <TodoList />
+    <TodoListGroup />
   </main>
 </template>
 

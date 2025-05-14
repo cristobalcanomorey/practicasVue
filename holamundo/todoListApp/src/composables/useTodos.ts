@@ -1,9 +1,17 @@
 import { reactive, ref } from 'vue'
 import type { Todo } from '@/types/todo'
 
-const todos = ref<Todo[]>([])
+// const todos = ref<Todo[]>([])
 
-export function useTodos(){
+export function useTodos(reference: any) {
+    console.log(reference)
+    const todos = reference
+
+    const test = () => {
+        console.log('test')
+        console.log(reference)
+    }
+
     const addTodo = (text: string) => {
         todos.value.push({
             id: todos.value.length + 1,
@@ -37,6 +45,7 @@ export function useTodos(){
         addTodo,
         toggleTodo,
         removeTodo,
-        toggleOcultarDones
+        toggleOcultarDones,
+        test
     }
 }

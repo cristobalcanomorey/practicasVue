@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import { useTodos } from '@/composables/useTodos'
+
 const newTask = ref('')
 
-const {
-  addTodo
-} = useTodos()
+
+const model = defineModel<any>()
+
 
 const add = () =>{
-  if(newTask.value.trim()){
-    addTodo(newTask.value)
-    newTask.value = ''
-  }
+newTask.value.trim()
+  model.value.push({ 
+    id: Date.now(),
+    text: newTask.value,
+    done: false,
+    oculto: false
+  })
+  newTask.value = ''
 }
 </script>
 <template>

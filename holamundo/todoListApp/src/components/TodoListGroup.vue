@@ -1,33 +1,39 @@
 <script setup lang="ts">
-// import { useTodos } from '@/composables/useTodos';
-// import TodoItem from '@/components/TodoItem.vue';
-// import TodoForm from './TodoForm.vue';
 import TodoList from './TodoList.vue';
+import TodoForm from './TodoForm.vue';
 import { ref } from 'vue';
+import type { Todo } from '@/types/todo';
+import type { Options } from '@/types/todo';
 
-const listas = ref({ 
-  'Grupo 1': [
-   
-  ],
-  'Grupo 2': [
+const models = defineModel<Options>('models');
+const lista1 = ref<Todo[]>([
+  { id: 1, text: 'Tarea 1', done: false, oculto: false },
+  { id: 2, text: 'Tarea 2', done: false, oculto: false },
+  { id: 3, text: 'Tarea 3', done: false, oculto: false },
+  { id: 4, text: 'Tarea 4', done: false, oculto: false },
+  { id: 5, text: 'Tarea 5', done: false, oculto: false }
+]);
+const lista2 = ref<Todo[]>([
+  { id: 1, text: 'Todo 1', done: false, oculto: false },
+  { id: 2, text: 'Todo 2', done: false, oculto: false },
+  { id: 3, text: 'Todo 3', done: false, oculto: false },
+  { id: 4, text: 'Todo 4', done: false, oculto: false },
+  { id: 5, text: 'Todo 5', done: false, oculto: false }
+]);
 
-  ],
-});
-
+function handleAdd(todo: Todo, lista: Todo[]) {
+  lista.push(todo);
+}
 </script>
 <template>
-<TodoList name="Group 1" v-model="listas['Grupo 1']" />
-<TodoList name="Group 2" v-model="listas['Grupo 2']" />
-  <!-- <TodoForm />
-  <ul>
-    <TodoItem  
-      v-for="todo in todos" 
-      :key="todo.id"
-      :todo="todo"
-      :toggle="toggleTodo"
-      :remove="removeTodo"
-      />
-  </ul> -->
+  
+    <TodoForm v-model="lista1" @add="todo => handleAdd(todo, lista1)" />
+    <TodoList name="Group 1" v-model:lista="lista1" v-model:options="models" />
+  
+  
+    <TodoForm v-model="lista2" @add="todo => handleAdd(todo, lista2)" />
+    <TodoList name="Group 2" v-model:lista="lista2" v-model:options="models" />
+  
 </template>
 
 <style scoped>

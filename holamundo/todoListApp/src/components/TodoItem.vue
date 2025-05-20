@@ -1,26 +1,51 @@
 <script setup lang="ts">
-import RemoveTask from '@/components/RemoveTask.vue'
 import type { Todo } from '@/types/todo';
+import type { Options } from '@/types/todo';
+import { computed, watch } from 'vue';
 
-const props = defineProps<{
-  todo: Todo,
-  toggle: (id: number) => void,
-  remove: (id: number) => void
-}>()
+const {todo} = defineProps<{
+  todo: Todo
+}>();
 
+const emit = defineEmits(['remove']);
 
+function toggleDone(){
+  console.log('done');
+  todo.done = !todo.done;
+}
+function remove(id: number){
+  emit('remove', id);
+}
+const [toggleOcultarDones, hayCompletados, hayOcultos] = defineModel<Options>('options', {
+  default: () => ({
+    toggleOcultarDones: false,
+    hayCompletados: false,
+    hayOcultos: false
+  })
+});
+
+// todo.oculto = todo.done && toggleOcultarDones.value;
+
+const oculto = computed(() => {
+  console.log('computed', todo.done, toggleOcultarDones.value);
+  return toggleOcultarDones.value && todo.done;
+});
+
+// watch(oculto, (newValue) => {
+//   todo.oculto = newValue;
+// });
 
 </script>
 <template>
     <li
-      v-if="!todo.oculto"
-      :key="props.todo.id"
-      :class="{ strikeout: props.todo.done }"
+      v-if="!oculto"
+      :key="todo.id"
+      :class="{ strikeout: todo.done }"
       class="todo-item"
-      @click="props.toggle(props.todo.id)"
+      @click="toggleDone()"
       >
-      <span :class="{ strikeout: props.todo.done }">{{ props.todo.text }}</span>
-      <RemoveTask :remove="remove" :id="todo.id"/>
+      <span :class="{ strikeout: todo.done }">{{ todo.text }}</span>
+      <button class="btn btn-cancel" @click.stop="remove(todo.id)">Eliminar</button>
     </li>
 </template>
 

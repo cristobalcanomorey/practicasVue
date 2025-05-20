@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import TodoList from '@/components/TodoList.vue';
+// import TodoList from '@/components/TodoList.vue';
 import TodoListGroup from '@/components/TodoListGroup.vue';
 import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue';
+import { ref } from 'vue';
+import type { Options } from '@/types/todo';
+
+const models = ref<Options>({
+  toggleOcultarDones: ref<boolean>(false),
+  hayCompletados: ref<boolean>(false),
+  hayOcultos: ref<boolean>(false)
+});
+
+
 </script>
 
 <template>
@@ -10,12 +20,12 @@ import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue';
 
     <div class="wrapper">
       <h1>Lista de tareas</h1>
-      <TodoToggleCompletos />
+      <TodoToggleCompletos v-model="models"  />
     </div>
   </header>
 
   <main>
-    <TodoListGroup />
+    <TodoListGroup v-model="models" />
   </main>
 </template>
 

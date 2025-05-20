@@ -1,31 +1,42 @@
 <script setup lang="ts">
-import { useTodos } from '@/composables/useTodos';
 import TodoItem from '@/components/TodoItem.vue';
 import TodoForm from './TodoForm.vue';
-// const {
-//     todos,
-//     toggleTodo,
-//     removeTodo
-// } = useTodos()
+import type { Todo } from '@/types/todo';
+// import { ref } from 'vue';
+import type { Options } from '@/types/todo';
+
 const props = defineProps<{
   name: string
-}>()
-const model = defineModel<any>()
+}>();
 
-const isTodos = useTodos(model.value)
+const lista = defineModel<Todo[]>('lista', {
+  default: () => ([])
+});
 
-console.log(isTodos.test())
+const options = defineModel<Options>('options', {
+  default: () => ({
+    toggleOcultarDones: false,
+    hayCompletados: false,
+    hayOcultos: false
+  })
+});
+
+
+function handleRemove( id: number) {
+  lista.value = lista.value.filter((todo: Todo) => todo.id !== id);
+}
+
 </script>
 <template>
   {{  name }}
-  <TodoForm v-model="model" />
-  <ul>
+  
+  <ul v-if="lista.length > 0">
     <TodoItem
-      v-for="todo in model"
+      v-for="todo in lista"
       :key="todo.id"
       :todo="todo"
-      :toggle="isTodos.toggleTodo"
-      :remove="isTodos.removeTodo"
+      v-model:options="options"
+      @remove="handleRemove(todo.id)"
       />
   </ul>
 </template>

@@ -1,22 +1,23 @@
 <script setup lang="ts">
 import {ref} from 'vue'
+import type { Todo } from '@/types/todo'
 
-const newTask = ref('')
+const newTask = ref<string>('');
 
+const emit = defineEmits(['add']);
 
-const model = defineModel<any>()
-
-
-const add = () =>{
-newTask.value.trim()
-  model.value.push({ 
-    id: Date.now(),
-    text: newTask.value,
-    done: false,
-    oculto: false
-  })
-  newTask.value = ''
+function add() {
+  if (newTask.value) {
+    emit('add', {
+      id: Date.now(),
+      text: newTask.value,
+      done: false,
+      oculto: false
+    } as Todo);
+    newTask.value = '';
+  }
 }
+
 </script>
 <template>
   <form id="todo-form" class="add-item-form" @submit.prevent="add()">

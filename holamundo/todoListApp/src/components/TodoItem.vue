@@ -3,20 +3,28 @@ import type { Todo } from '@/types/todo';
 import type { Options } from '@/types/todo';
 import { computed, watch } from 'vue';
 
-const {todo} = defineProps<{
-  todo: Todo
+// const {todo} = defineProps<{
+//   todo: Todo
+// }>();
+
+const props = defineProps<{
+  todo: Todo,
+  toggleOcultarDones: boolean,
+  hayCompletados: boolean,
+  hayOcultos: boolean
 }>();
 
-const emit = defineEmits(['remove']);
+const emit = defineEmits(['remove', 'toggleDone']);
 
 function toggleDone(){
   console.log('done');
-  todo.done = !todo.done;
+  props.todo.done = !props.todo.done;
+  emit('toggleDone');
 }
 function remove(id: number){
   emit('remove', id);
 }
-const [toggleOcultarDones, hayCompletados, hayOcultos] = defineModel<Options>('options', {
+const options = defineModel<Options>('options', {
   default: () => ({
     toggleOcultarDones: false,
     hayCompletados: false,
@@ -26,10 +34,10 @@ const [toggleOcultarDones, hayCompletados, hayOcultos] = defineModel<Options>('o
 
 // todo.oculto = todo.done && toggleOcultarDones.value;
 
-const oculto = computed(() => {
-  console.log('computed', todo.done, toggleOcultarDones.value);
-  return toggleOcultarDones.value && todo.done;
-});
+// const oculto = computed(() => {
+//   console.log('computed', props.todo.done, options.value.toggleOcultarDones);
+//   return options.value.toggleOcultarDones && props.todo.done;
+// });
 
 // watch(oculto, (newValue) => {
 //   todo.oculto = newValue;
@@ -38,7 +46,7 @@ const oculto = computed(() => {
 </script>
 <template>
     <li
-      v-if="!oculto"
+      v-if="!toggleOcultarDones"
       :key="todo.id"
       :class="{ strikeout: todo.done }"
       class="todo-item"

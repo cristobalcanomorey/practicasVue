@@ -5,12 +5,22 @@ import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue';
 import { ref } from 'vue';
 import type { Options } from '@/types/todo';
 
-const models = ref<Options>({
-  toggleOcultarDones: ref<boolean>(false),
-  hayCompletados: ref<boolean>(false),
-  hayOcultos: ref<boolean>(false)
+const options = ref<Options>({
+  toggleOcultarDones: false,
+  hayCompletados: false,
+  hayOcultos: false
 });
+const toggleOcultarDones = ref(false);
+const hayCompletados = ref(false);
+const hayOcultos = ref(false);
+function toggleCompletados(){
+    toggleOcultarDones.value = !toggleOcultarDones.value
+    console.log('toggleCompletados', toggleOcultarDones.value);
+}
 
+function handleDone(){
+  
+}
 
 </script>
 
@@ -20,12 +30,12 @@ const models = ref<Options>({
 
     <div class="wrapper">
       <h1>Lista de tareas</h1>
-      <TodoToggleCompletos v-model="models"  />
+      <TodoToggleCompletos @toggle-completados="toggleCompletados()" :hayCompletados="hayCompletados" :hayOcultos="hayOcultos" :toggleOcultarDones="toggleOcultarDones" />
     </div>
   </header>
 
   <main>
-    <TodoListGroup v-model="models" />
+    <TodoListGroup :hayCompletados="hayCompletados" :hayOcultos="hayOcultos" :toggleOcultarDones="toggleOcultarDones" @toggleDone="handleDone()"/>
   </main>
 </template>
 

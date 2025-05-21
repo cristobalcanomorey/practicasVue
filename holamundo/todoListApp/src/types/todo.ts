@@ -8,7 +8,7 @@ export type Todo = {
 }
 
 export type Options = {
-  toggleOcultarDones: Ref<boolean>,
-  hayCompletados: Ref<boolean>,
-  hayOcultos: Ref<boolean>
+  toggleOcultarDones: boolean,
+  hayCompletados: boolean,
+  hayOcultos: boolean
 }

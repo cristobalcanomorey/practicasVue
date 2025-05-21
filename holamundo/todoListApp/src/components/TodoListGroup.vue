@@ -5,34 +5,45 @@ import { ref } from 'vue';
 import type { Todo } from '@/types/todo';
 import type { Options } from '@/types/todo';
 
-const models = defineModel<Options>('models');
+// const models = defineModel<Options>('models');
+const props = defineProps<Options>()
 const lista1 = ref<Todo[]>([
-  { id: 1, text: 'Tarea 1', done: false, oculto: false },
-  { id: 2, text: 'Tarea 2', done: false, oculto: false },
-  { id: 3, text: 'Tarea 3', done: false, oculto: false },
-  { id: 4, text: 'Tarea 4', done: false, oculto: false },
-  { id: 5, text: 'Tarea 5', done: false, oculto: false }
 ]);
 const lista2 = ref<Todo[]>([
-  { id: 1, text: 'Todo 1', done: false, oculto: false },
-  { id: 2, text: 'Todo 2', done: false, oculto: false },
-  { id: 3, text: 'Todo 3', done: false, oculto: false },
-  { id: 4, text: 'Todo 4', done: false, oculto: false },
-  { id: 5, text: 'Todo 5', done: false, oculto: false }
 ]);
 
 function handleAdd(todo: Todo, lista: Todo[]) {
   lista.push(todo);
 }
+const emit = defineEmits(['toggleDone'])
+function handleDone(){
+  emit('toggleDone')
+}
 </script>
 <template>
-  
+  <div>
     <TodoForm v-model="lista1" @add="todo => handleAdd(todo, lista1)" />
-    <TodoList name="Group 1" v-model:lista="lista1" v-model:options="models" />
+    <TodoList
+      name="Lista 1"
+      v-model:lista="lista1"
+      :hayCompletados="hayCompletados"
+      :hayOcultos="hayOcultos"
+      :toggleOcultarDones="toggleOcultarDones"
+      @toggleDone="handleDone()"
+       />
   
   
     <TodoForm v-model="lista2" @add="todo => handleAdd(todo, lista2)" />
-    <TodoList name="Group 2" v-model:lista="lista2" v-model:options="models" />
+    <TodoList
+    name="Lista 2"
+    v-model:lista="lista2"
+    :hayCompletados="hayCompletados"
+    :hayOcultos="hayOcultos"
+    :toggleOcultarDones="toggleOcultarDones"
+    @toggleDone="handleDone()"
+    />
+
+  </div>
   
 </template>
 

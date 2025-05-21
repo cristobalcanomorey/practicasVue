@@ -2,28 +2,41 @@
 import TodoItem from '@/components/TodoItem.vue';
 import TodoForm from './TodoForm.vue';
 import type { Todo } from '@/types/todo';
-// import { ref } from 'vue';
+import { computed } from 'vue';
 import type { Options } from '@/types/todo';
 
 const props = defineProps<{
-  name: string
+  name: string,
+  toggleOcultarDones: boolean,
+  hayCompletados: boolean,
+  hayOcultos: boolean
 }>();
 
 const lista = defineModel<Todo[]>('lista', {
   default: () => ([])
 });
 
-const options = defineModel<Options>('options', {
-  default: () => ({
-    toggleOcultarDones: false,
-    hayCompletados: false,
-    hayOcultos: false
-  })
-});
+// const options = defineModel<Options>('options', {
+//   default: () => ({
+//     toggleOcultarDones: false,
+//     hayCompletados: false,
+//     hayOcultos: false
+//   })
+// });
 
+// const hayCompletados = computed(() => {
+//   console.log('hayCompletados', lista.value.length, lista.value.some((todo: Todo) => todo.done));
+//   return lista.value.length > 0 && lista.value.some((todo: Todo) => todo.done);
+// });
 
+// options.value.hayCompletados = hayCompletados;
+const emit = defineEmits(['toggleDone'])
 function handleRemove( id: number) {
   lista.value = lista.value.filter((todo: Todo) => todo.id !== id);
+}
+
+function handleDone(){
+  emit('toggleDone');
 }
 
 </script>
@@ -35,8 +48,9 @@ function handleRemove( id: number) {
       v-for="todo in lista"
       :key="todo.id"
       :todo="todo"
-      v-model:options="options"
+      :hayCompletados="hayCompletados" :hayOcultos="hayOcultos" :toggleOcultarDones="toggleOcultarDones"
       @remove="handleRemove(todo.id)"
+      @toggleDone="handleDone()"
       />
   </ul>
 </template>

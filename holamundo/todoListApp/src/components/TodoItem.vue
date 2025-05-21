@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Todo } from '@/types/todo';
-import type { Options } from '@/types/todo';
+// import type { Options } from '@/types/todo';
 import { computed, watch } from 'vue';
 
 // const {todo} = defineProps<{
@@ -24,13 +24,13 @@ function toggleDone(){
 function remove(id: number){
   emit('remove', id);
 }
-const options = defineModel<Options>('options', {
-  default: () => ({
-    toggleOcultarDones: false,
-    hayCompletados: false,
-    hayOcultos: false
-  })
-});
+// const options = defineModel<Options>('options', {
+//   default: () => ({
+//     toggleOcultarDones: false,
+//     hayCompletados: false,
+//     hayOcultos: false
+//   })
+// });
 
 // todo.oculto = todo.done && toggleOcultarDones.value;
 
@@ -43,10 +43,12 @@ const options = defineModel<Options>('options', {
 //   todo.oculto = newValue;
 // });
 
+
+
 </script>
 <template>
     <li
-      v-if="!toggleOcultarDones"
+      v-if="!todo.oculto"
       :key="todo.id"
       :class="{ strikeout: todo.done }"
       class="todo-item"

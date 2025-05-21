@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Options } from '@/types/todo';
+import type { ListState } from '@/types/todo';
 
 
 // const [toggleOcultarDones, hayCompletados, hayOcultos] = defineModel('models');
@@ -9,7 +9,7 @@ function handleClick() {
     emit('toggle-completados');
 }
 
-const props = defineProps<Options>()
+const estadoGeneral = defineProps<ListState>()
 
 </script>
 

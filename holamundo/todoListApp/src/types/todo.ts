@@ -7,8 +7,13 @@ export type Todo = {
   oculto: boolean
 }
 
-export type Options = {
-  toggleOcultarDones: boolean,
+export type ListState = {
   hayCompletados: boolean,
   hayOcultos: boolean
+}
+
+export type TodoListType = {
+  name: string,
+  todos: Todo[],
+  listState: ListState
 }

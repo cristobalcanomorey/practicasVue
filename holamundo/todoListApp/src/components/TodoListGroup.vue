@@ -1,23 +1,51 @@
 <script setup lang="ts">
 import TodoList from './TodoList.vue';
 import TodoForm from './TodoForm.vue';
-import { ref } from 'vue';
+import { ref, watch, toRef  } from 'vue';
 import type { Todo } from '@/types/todo';
-import type { Options } from '@/types/todo';
+import type { ListState, TodoListType } from '@/types/todo';
 
 // const models = defineModel<Options>('models');
-const props = defineProps<Options>()
-const lista1 = ref<Todo[]>([
-]);
-const lista2 = ref<Todo[]>([
-]);
+const props = defineProps({
+  toggleOcultarDones: Boolean,
+  gl: Boolean
+})
+// const lista1 = ref<Todo[]>([
+// ]);
+const lista1 = ref<TodoListType>({
+  name: 'Lista 1',
+  todos: [],
+  listState: {
+    hayCompletados: false,
+    hayOcultos: false
+  }
+})
 
-function handleAdd(todo: Todo, lista: Todo[]) {
-  lista.push(todo);
+const lista2 = ref<TodoListType>({
+  name: 'Lista 2',
+  todos: [],
+  listState: {
+    hayCompletados: false,
+    hayOcultos: false
+  }
+})
+
+const listas = ref<TodoListType[]>([lista1.value, lista2.value]);
+
+function handleAdd(todo: Todo, lista: TodoListType) {
+  lista.todos.push(todo);
 }
-const emit = defineEmits(['toggleDone'])
-function handleDone(){
-  emit('toggleDone')
+const emit = defineEmits(['checkListState', 'checkListOcultos'])
+
+watch(toRef(props.gl), (newValue) => {
+  if (newValue) {
+    emit('checkListState', listas.value);
+  }
+})
+
+function checkCompletados(listas: TodoListType[]){
+  emit('checkListState', listas);
+
 }
 </script>
 <template>
@@ -26,21 +54,17 @@ function handleDone(){
     <TodoList
       name="Lista 1"
       v-model:lista="lista1"
-      :hayCompletados="hayCompletados"
-      :hayOcultos="hayOcultos"
       :toggleOcultarDones="toggleOcultarDones"
-      @toggleDone="handleDone()"
+      @checkCompletados="checkCompletados(listas)"
        />
   
   
     <TodoForm v-model="lista2" @add="todo => handleAdd(todo, lista2)" />
     <TodoList
-    name="Lista 2"
-    v-model:lista="lista2"
-    :hayCompletados="hayCompletados"
-    :hayOcultos="hayOcultos"
-    :toggleOcultarDones="toggleOcultarDones"
-    @toggleDone="handleDone()"
+      name="Lista 2"
+      v-model:lista="lista2"
+      :toggleOcultarDones="toggleOcultarDones"
+      @checkCompletados="checkCompletados(listas)"
     />
 
   </div>

@@ -3,25 +3,34 @@
 import TodoListGroup from '@/components/TodoListGroup.vue';
 import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue';
 import { ref } from 'vue';
-import type { Options } from '@/types/todo';
+import type { ListState, TodoListType } from '@/types/todo';
+// import type { Options } from '@/types/todo';
 
-const options = ref<Options>({
-  toggleOcultarDones: false,
-  hayCompletados: false,
-  hayOcultos: false
-});
+// const options = ref<Options>({
+//   toggleOcultarDones: false,
+//   hayCompletados: false,
+//   hayOcultos: false
+// });
 const toggleOcultarDones = ref(false);
-const hayCompletados = ref(false);
-const hayOcultos = ref(false);
+// const hayCompletados = ref(false);
+// const hayOcultos = ref(false);
+const gl = ref<boolean>(false);
 function toggleCompletados(){
     toggleOcultarDones.value = !toggleOcultarDones.value
+    gl.value = toggleOcultarDones.value
     console.log('toggleCompletados', toggleOcultarDones.value);
 }
 
-function handleDone(){
-  
-}
+const estadoGeneral = ref<ListState>({
+  hayCompletados: false,
+  hayOcultos: false
+})
 
+function checkListState(listas: TodoListType[]){
+  estadoGeneral.value.hayCompletados = listas.some((list: TodoListType) => list.listState.hayCompletados);
+  estadoGeneral.value.hayOcultos = listas.some((list: TodoListType) => list.listState.hayOcultos);
+  console.log('checkListState', listas);
+}
 </script>
 
 <template>
@@ -30,12 +39,20 @@ function handleDone(){
 
     <div class="wrapper">
       <h1>Lista de tareas</h1>
-      <TodoToggleCompletos @toggle-completados="toggleCompletados()" :hayCompletados="hayCompletados" :hayOcultos="hayOcultos" :toggleOcultarDones="toggleOcultarDones" />
+      <TodoToggleCompletos 
+        :hayCompletados="estadoGeneral.hayCompletados"
+        :hayOcultos="estadoGeneral.hayOcultos"
+        @toggle-completados="toggleCompletados()"
+        />
     </div>
   </header>
 
   <main>
-    <TodoListGroup :hayCompletados="hayCompletados" :hayOcultos="hayOcultos" :toggleOcultarDones="toggleOcultarDones" @toggleDone="handleDone()"/>
+    <TodoListGroup 
+      :gl="gl"
+      :toggleOcultarDones="toggleOcultarDones"
+      @checkListState="listas => checkListState(listas)"
+      />
   </main>
 </template>
 

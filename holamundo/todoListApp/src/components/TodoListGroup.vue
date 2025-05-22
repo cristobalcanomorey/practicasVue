@@ -1,74 +1,52 @@
 <script setup lang="ts">
-import TodoList from './TodoList.vue';
-import TodoForm from './TodoForm.vue';
-import { ref, watch, toRef  } from 'vue';
-import type { Todo } from '@/types/todo';
-import type { ListState, TodoListType } from '@/types/todo';
+import TodoList from './TodoList.vue'
+import TodoForm from './TodoForm.vue'
+import { ref } from 'vue'
+import type { Todo } from '@/types/todo'
+import type { TodoListType } from '@/types/todo'
 
-// const models = defineModel<Options>('models');
-const props = defineProps({
-  toggleOcultarDones: Boolean,
-  gl: Boolean
-})
-// const lista1 = ref<Todo[]>([
-// ]);
-const lista1 = ref<TodoListType>({
-  name: 'Lista 1',
-  todos: [],
-  listState: {
-    hayCompletados: false,
-    hayOcultos: false
-  }
-})
+// Obtiene del padre la nueva lista a crear y hideCompleted
+const props = defineProps<{
+  hideCompleted: boolean
+  newList: string | null
+}>()
 
-const lista2 = ref<TodoListType>({
-  name: 'Lista 2',
-  todos: [],
-  listState: {
-    hayCompletados: false,
-    hayOcultos: false
-  }
-})
+const listas = ref<TodoListType[]>([])
 
-const listas = ref<TodoListType[]>([lista1.value, lista2.value]);
-
+// Añade una nueva tarea a la lista
 function handleAdd(todo: Todo, lista: TodoListType) {
-  lista.todos.push(todo);
+  lista.todos.push(todo)
 }
-const emit = defineEmits(['checkListState', 'checkListOcultos'])
 
-watch(toRef(props.gl), (newValue) => {
-  if (newValue) {
-    emit('checkListState', listas.value);
-  }
+const emit = defineEmits(['checkListOcultos', 'clearNew'])
+
+// Elimina una lista por su nombre
+function handleRemove(listName:string){
+  listas.value = listas.value.filter((lista) => {
+    return lista.name != listName
+  })
+  console.log(listName, listas.value)
+}
+
+// Expone las listas al padre
+defineExpose({
+  listas,
 })
-
-function checkCompletados(listas: TodoListType[]){
-  emit('checkListState', listas);
-
-}
 </script>
 <template>
   <div>
-    <TodoForm v-model="lista1" @add="todo => handleAdd(todo, lista1)" />
-    <TodoList
-      name="Lista 1"
-      v-model:lista="lista1"
-      :toggleOcultarDones="toggleOcultarDones"
-      @checkCompletados="checkCompletados(listas)"
-       />
-  
-  
-    <TodoForm v-model="lista2" @add="todo => handleAdd(todo, lista2)" />
-    <TodoList
-      name="Lista 2"
-      v-model:lista="lista2"
-      :toggleOcultarDones="toggleOcultarDones"
-      @checkCompletados="checkCompletados(listas)"
-    />
+    <div v-for="(lista, index) in listas">
+      <TodoForm v-model="listas[index]" @add="(todo) => handleAdd(todo, lista)" @removeList="listName => handleRemove(listName)" />
+      <TodoList
+        :name="lista.name"
+        v-model:lista="listas[index]"
+        :key="index"
+        :hideCompleted="hideCompleted"
+      />
+
+    </div>
 
   </div>
-  
 </template>
 
 <style scoped>

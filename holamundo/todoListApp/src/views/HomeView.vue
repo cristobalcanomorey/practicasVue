@@ -1,58 +1,63 @@
 <script setup lang="ts">
-// import TodoList from '@/components/TodoList.vue';
-import TodoListGroup from '@/components/TodoListGroup.vue';
-import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue';
-import { ref } from 'vue';
-import type { ListState, TodoListType } from '@/types/todo';
-// import type { Options } from '@/types/todo';
+import { computed } from 'vue'
+import TodoListGroup from '@/components/TodoListGroup.vue'
+import TodoToggleCompletos from '@/components/TodoToggleCompletos.vue'
+import TodoListForm from '@/components/TodoListForm.vue'
 
-// const options = ref<Options>({
-//   toggleOcultarDones: false,
-//   hayCompletados: false,
-//   hayOcultos: false
-// });
-const toggleOcultarDones = ref(false);
-// const hayCompletados = ref(false);
-// const hayOcultos = ref(false);
-const gl = ref<boolean>(false);
-function toggleCompletados(){
-    toggleOcultarDones.value = !toggleOcultarDones.value
-    gl.value = toggleOcultarDones.value
-    console.log('toggleCompletados', toggleOcultarDones.value);
+import { ref } from 'vue'
+import type { TodoListType } from '@/types/todo'
+
+// Obtiene la lista de listas TODO
+const $group = ref<InstanceType<typeof TodoListGroup> | null>(null)
+
+const hideCompleted = ref<boolean>(false)
+
+function toggleCompletados() {
+  hideCompleted.value = !hideCompleted.value
 }
 
-const estadoGeneral = ref<ListState>({
-  hayCompletados: false,
-  hayOcultos: false
+// Comprueba si hay alguna tarea completada en alguna de las listas
+const hasCompleted = computed(() => {
+  if (!$group.value) return false
+  return $group.value.listas.some((list: TodoListType) => list.todos.some((todo) => todo.done))
 })
 
-function checkListState(listas: TodoListType[]){
-  estadoGeneral.value.hayCompletados = listas.some((list: TodoListType) => list.listState.hayCompletados);
-  estadoGeneral.value.hayOcultos = listas.some((list: TodoListType) => list.listState.hayOcultos);
-  console.log('checkListState', listas);
+// Comprueba si se están ocultando las tareas completadas
+const hasHidden = computed(() => {
+  return hideCompleted.value
+})
+
+const newList = ref<string | null>(null)
+
+// Crea una nueva lista de tareas
+function handleAddList(listName: string) {
+  newList.value = listName
+  if ($group.value) {
+    $group.value.listas.push({
+      name: newList.value,
+      todos: [],
+    })
+  }
 }
 </script>
 
 <template>
-    <header>
+  <header>
     <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
       <h1>Lista de tareas</h1>
-      <TodoToggleCompletos 
-        :hayCompletados="estadoGeneral.hayCompletados"
-        :hayOcultos="estadoGeneral.hayOcultos"
+      <TodoToggleCompletos
+        :hayCompletados="hasCompleted"
+        :hayOcultos="hasHidden"
         @toggle-completados="toggleCompletados()"
-        />
+      />
+      <TodoListForm @add="(listName) => handleAddList(listName)" />
     </div>
   </header>
 
   <main>
-    <TodoListGroup 
-      :gl="gl"
-      :toggleOcultarDones="toggleOcultarDones"
-      @checkListState="listas => checkListState(listas)"
-      />
+    <TodoListGroup ref="$group" :hideCompleted="hideCompleted" :newList="newList" />
   </main>
 </template>
 

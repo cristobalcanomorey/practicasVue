@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { ListState } from '@/types/todo';
 
-
-// const [toggleOcultarDones, hayCompletados, hayOcultos] = defineModel('models');
 const emit = defineEmits(['toggle-completados'])
 
+// Avisa al padre de que ha de mostrar u ocultar las tareas completadas
 function handleClick() {
     emit('toggle-completados');
 }

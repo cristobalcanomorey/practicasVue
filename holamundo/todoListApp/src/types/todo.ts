@@ -15,5 +15,5 @@ export type ListState = {
 export type TodoListType = {
   name: string,
   todos: Todo[],
-  listState: ListState
+  // listState: ListState
 }

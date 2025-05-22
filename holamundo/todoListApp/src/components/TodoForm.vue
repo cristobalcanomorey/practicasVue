@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import type { Todo } from '@/types/todo'
+import type { TodoListType } from '@/types/todo'
 
 const newTask = ref<string>('');
 
-const emit = defineEmits(['add']);
+const model = defineModel<TodoListType>();
+const emit = defineEmits(['add', 'removeList']);
 
+// Crea una nueva tarea
 function add() {
-  if (newTask.value) {
-    emit('add', {
+  if (newTask.value && model.value != undefined) {
+    model.value.todos.push({
       id: Date.now(),
       text: newTask.value,
       done: false,
@@ -18,8 +21,16 @@ function add() {
   }
 }
 
+// Emite el nombre de la tarea a eliminar
+function removeList(){
+  if(model.value ){
+    emit('removeList', model.value.name)
+  }
+}
+
 </script>
 <template>
+  <button class="btn btn-cancel" @click.stop="removeList()">Eliminar lista</button>
   <form id="todo-form" class="add-item-form" @submit.prevent="add()">
     <input
       type="text"

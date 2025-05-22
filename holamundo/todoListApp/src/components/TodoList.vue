@@ -1,79 +1,50 @@
 <script setup lang="ts">
-import TodoItem from '@/components/TodoItem.vue';
-import TodoForm from './TodoForm.vue';
-import type { Todo } from '@/types/todo';
-import { computed, watch } from 'vue';
-import type { ListState, TodoListType } from '@/types/todo';
-import {  ref } from 'vue';
+import TodoItem from '@/components/TodoItem.vue'
+import type { Todo } from '@/types/todo'
+import { computed } from 'vue'
+import type { TodoListType } from '@/types/todo'
 
+// Obtiene el name y el hideCompleted del padre
 const props = defineProps<{
-  name: string,
-  toggleOcultarDones: boolean,
-  // hayCompletados: boolean,
-  // hayOcultos: boolean
-}>();
+  name: string
+  hideCompleted: boolean
+}>()
 
+// Macro para compartir la lista de tareas con el padre
 const lista = defineModel<TodoListType>('lista', {
-  default: () => (
-    {
-      name: '',
-      todos: [],
-      listState: {
-        hayCompletados: false,
-        hayOcultos: false
-    }
-  })
-});
-
-// const options = defineModel<Options>('options', {
-//   default: () => ({
-//     toggleOcultarDones: false,
-//     hayCompletados: false,
-//     hayOcultos: false
-//   })
-// });
-
-// const hayCompletados = computed(() => {
-//   console.log('hayCompletados', lista.value.length, lista.value.some((todo: Todo) => todo.done));
-//   return lista.value.length > 0 && lista.value.some((todo: Todo) => todo.done);
-// });
-
-// options.value.hayCompletados = hayCompletados;
-// const emit = defineEmits(['toggleDone'])
-
-
-watch(() => props.toggleOcultarDones, (newValue) => {
-  lista.value.todos.forEach((todo: Todo) => todo.oculto = newValue? todo.done : false);  
-  lista.value.listState.hayOcultos = lista.value.todos.some((todo: Todo) => todo.oculto);
+  default: () => ({
+    name: '',
+    todos: [],
+  }),
 })
 
+// Crea una nueva lista de tareas visibles, si se están ocultando las completadas obtiene sólo las no completadas
+const visibleList = computed(() => {
+  return lista.value.todos.filter((todo: Todo) => {
+    if (props.hideCompleted) {
+      return !todo.done
+    }
+    return true
+  })
+})
 
-const emit = defineEmits(['checkCompletados'])
-
-
-function handleRemove( id: number) {
-  lista.value.todos = lista.value.todos.filter((todo: Todo) => todo.id !== id);
-}
-
-function handleDone(){
-  // emit('toggleDone');
-  lista.value.listState.hayCompletados = lista.value.todos.length > 0 && lista.value.todos.some((todo: Todo) => todo.done);
-  emit('checkCompletados', lista);
+// Elimina una tarea
+function handleRemove(id: number) {
+  lista.value.todos = lista.value.todos.filter((todo: Todo) => todo.id !== id)
 }
 
 </script>
 <template>
-  {{  name }}
-  
-  <ul v-if="lista.todos.length > 0">
+  {{ name }}
+
+  <ul v-if="visibleList.length > 0">
     <TodoItem
-      v-for="todo in lista.todos"
+      v-for="todo in visibleList"
       :key="todo.id"
       :todo="todo"
-      :hayCompletados="lista.listState.hayCompletados" :hayOcultos="lista.listState.hayOcultos" :toggleOcultarDones="toggleOcultarDones"
+      :hideCompleted="hideCompleted"
       @remove="handleRemove(todo.id)"
-      @toggleDone="handleDone()"
-      />
+    />
   </ul>
 </template>
 

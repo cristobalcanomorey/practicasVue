@@ -6,20 +6,20 @@ const emit = defineEmits(['handleComando'])
 
 const newCAction = ref<string>('')
 
-const newComando = ref<Comando>(new Comando())
+// const newComando = ref<Comando>(new Comando())
 
 
 function handleComando() {
 	let cParts = newCAction.value.split(' ')
 	console.log(cParts)
 	const [cname = '', option = '', ...args] = newCAction.value.trim().split(/\s+/)
-	newComando.value.cname = cname
-	newComando.value.option = option
-	newComando.value.args = args
+	let newComando = new Comando()
+	newComando.cname = cname
+	newComando.option = option
+	newComando.args = args
 
-	emit('handleComando', newComando.value)
+	emit('handleComando', newComando)
 	newCAction.value = ''
-	newComando.value = new Comando()
 }
 </script>
 

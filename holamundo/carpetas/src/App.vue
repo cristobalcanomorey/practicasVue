@@ -32,13 +32,14 @@ const wd = ref<string>('/' + treeData.value.name)
 const openedFolders = ref<string>(wd.value)
 const listChildrenInWD = ref<boolean>(false)
 
+// no usar con refs
 const pwd = ref<Comando>(new Comando(0, 'Muestra el directorio actual', 'pwd', '', [], pwdAction))
 const ls = ref<Comando>(new Comando(1, 'Lista de subcarpetas', 'ls', '', [], lsAction))
 const touch = ref<Comando>(new Comando(2, 'Crea un archivo nuevo', 'touch', '', [], touchAction))
 const mkdir = ref<Comando>(new Comando(3, 'Crea una nueva carpeta', 'mkdir', '', [], mkdirAction))
 const cd = ref<Comando>(new Comando(4, 'Cambia de directorio', 'cd', '', [], cdAction))
 
-const comandos = ref<Comando[]>([])
+const comandos = ref<Comando[]>([]) // lista normal
 
 const currentComando = ref<Comando | undefined>(new Comando())
 

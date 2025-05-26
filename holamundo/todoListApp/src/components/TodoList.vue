@@ -37,7 +37,7 @@ function handleRemove(id: number) {
 <template>
   {{ name }}
 
-  <ul v-if="visibleList.length > 0">
+  <TransitionGroup  name="bounce" tag="ul" >
     <TodoItem
       v-for="todo in visibleList"
       :key="todo.id"
@@ -45,10 +45,27 @@ function handleRemove(id: number) {
       :hideCompleted="hideCompleted"
       @remove="handleRemove(todo.id)"
     />
-  </ul>
+  </TransitionGroup >
 </template>
 
-<style scoped>
+<style >
+.bounce-enter-active {
+  animation: bounce-in 0.5s;
+}
+.bounce-leave-active {
+  animation: bounce-in 0.5s reverse;
+}
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 ul {
   list-style-type: disc !important;
   padding-left: 2rem !important;

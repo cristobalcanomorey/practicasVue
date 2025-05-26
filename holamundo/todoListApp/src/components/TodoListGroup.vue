@@ -21,7 +21,7 @@ function handleAdd(todo: Todo, lista: TodoListType) {
 const emit = defineEmits(['checkListOcultos', 'clearNew'])
 
 // Elimina una lista por su nombre
-function handleRemove(listName:string){
+function handleRemove(listName: string) {
   listas.value = listas.value.filter((lista) => {
     return lista.name != listName
   })
@@ -35,21 +35,41 @@ defineExpose({
 </script>
 <template>
   <div>
-    <div v-for="(lista, index) in listas">
-      <TodoForm v-model="listas[index]" @add="(todo) => handleAdd(todo, lista)" @removeList="listName => handleRemove(listName)" />
-      <TodoList
-        :name="lista.name"
-        v-model:lista="listas[index]"
-        :key="index"
-        :hideCompleted="hideCompleted"
-      />
-
-    </div>
-
+    <TransitionGroup name="slide-fade">
+    <div v-for="(lista, index) in listas" :key="index">
+        <TodoForm
+          :key="index"
+          v-model="listas[index]"
+          @add="(todo) => handleAdd(todo, lista)"
+          @removeList="(listName) => handleRemove(listName)"
+        />
+     
+        <TodoList
+          :name="lista.name"
+          v-model:lista="listas[index]"
+          :key="index"
+          :hideCompleted="hideCompleted"
+        />
+      </div>
+    </TransitionGroup>
   </div>
 </template>
 
 <style scoped>
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
 ul {
   list-style-type: disc !important;
   padding-left: 2rem !important;

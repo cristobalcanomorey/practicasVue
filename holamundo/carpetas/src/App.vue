@@ -8,8 +8,8 @@ import type { TreeNode } from '@/types/TreeNode'
 const treeData = ref<TreeNode>({
 	name: 'My Tree',
 	children: [
-		{ name: 'hello' },
-		{ name: 'world' },
+		{ name: 'hello', children: null },
+		{ name: 'world', children: null },
 		// {
 		//   name: 'child folder',
 		//   children: [
@@ -28,20 +28,23 @@ const treeData = ref<TreeNode>({
 	],
 })
 
-const wd = ref<string>(treeData.value.name)
+const wd = ref<string>('/' + treeData.value.name)
+const openedFolders = ref<string>(wd.value)
+const listChildrenInWD = ref<boolean>(false)
 
 const pwd = ref<Comando>(new Comando(0, 'Muestra el directorio actual', 'pwd', '', [], pwdAction))
 const ls = ref<Comando>(new Comando(1, 'Lista de subcarpetas', 'ls', '', [], lsAction))
 const touch = ref<Comando>(new Comando(2, 'Crea un archivo nuevo', 'touch', '', [], touchAction))
-const mkdir = ref<Comando>(new Comando(3,'Crea una nueva carpeta', 'mkdir', '', [], mkdirAction))
+const mkdir = ref<Comando>(new Comando(3, 'Crea una nueva carpeta', 'mkdir', '', [], mkdirAction))
+const cd = ref<Comando>(new Comando(4, 'Cambia de directorio', 'cd', '', [], cdAction))
 
 const comandos = ref<Comando[]>([])
 
 const currentComando = ref<Comando | undefined>(new Comando())
-const folder = ref<string>(wd.value)
+
 const newFolder = ref<TreeNode>({
 	name: '',
-	children: []
+	children: [],
 })
 const file = ref<string>('')
 
@@ -49,8 +52,23 @@ comandos.value.push(pwd.value)
 comandos.value.push(ls.value)
 comandos.value.push(touch.value)
 comandos.value.push(mkdir.value)
+comandos.value.push(cd.value)
 
-function mkdirAction(){
+function cdAction() {
+	// wd.value = wd.value + '/' + cd.value.option
+	let dirList = wd.value.split('/')
+	let changeList = cd.value.option.split('/')
+	changeList.forEach((change)=>{
+		if(change == '..'){
+			dirList.pop()
+		} else if(change) {
+			dirList.push(change)
+		}
+	})
+	wd.value = dirList.join('/')
+}
+
+function mkdirAction() {
 	newFolder.value.name = mkdir.value.option
 }
 
@@ -59,7 +77,8 @@ function pwdAction() {
 }
 
 function lsAction() {
-	folder.value = wd.value
+	openedFolders.value = wd.value
+	listChildrenInWD.value = true
 }
 
 function touchAction() {
@@ -69,6 +88,18 @@ function touchAction() {
 	})
 	console.log('nuevo archivo: ' + file.value)
 }
+
+// function* walkTreeData(root) {
+// 	if (root === null) return
+
+// 	const stack = [root]
+// 	while (stack.length) {
+// 		const item = stack.pop()
+// 		yield item
+// 		if (item.right) stack.push(item.right)
+// 		if (item.left) stack.push(item.left)
+// 	}
+// }
 
 function runComando(comando: Comando) {
 	currentComando.value = comandos.value.find((cooma) => {
@@ -84,6 +115,9 @@ function runComando(comando: Comando) {
 	if (currentComando.value) {
 		currentComando.value.action()
 	}
+}
+function handleChildShownEmit(){
+	listChildrenInWD.value = false
 }
 </script>
 
@@ -101,11 +135,14 @@ function runComando(comando: Comando) {
 			<TreeItem
 				class="item"
 				:model="treeData"
-				:openFolder="folder"
-				:newFile="file" 
+				:currentDirectory="wd"
+				:openFolder="openedFolders"
+				:newFile="file"
 				:newFolder="newFolder"
 				:parentDirectory="treeData.name"
-				/>
+				:listChildrenInWD="listChildrenInWD"
+				@childShown="handleChildShownEmit"
+			/>
 		</ul>
 	</main>
 </template>

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-	const props = defineProps<{
-		item: string
-	}>()
+import type { Task } from '@/types';
+
+const props = defineProps<{
+	item: Task
+}>()
 </script>
 
 <template>
-	{{ item }}
+	{{ item.title }}
 </template>
-

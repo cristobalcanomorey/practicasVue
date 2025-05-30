@@ -6,3 +6,4 @@ export interface Task {
 }
 
 export type TaskFilter = "all" | "todo" | "completed" | "priority";
+export type Idioma = "es" | "en";

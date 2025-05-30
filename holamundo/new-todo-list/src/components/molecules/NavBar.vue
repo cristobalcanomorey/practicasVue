@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import HelloWorld from '@/components/atoms/HelloWorld.vue';
+
+const idioma = document.documentElement.lang
 </script>
 
 <template>
@@ -7,9 +9,9 @@ import HelloWorld from '@/components/atoms/HelloWorld.vue';
 		<HelloWorld msg="You did it!" />
 
 		<nav>
-			<RouterLink to="/">Home</RouterLink>
-			<RouterLink to="/about">About</RouterLink>
-			<RouterLink to="/nueva">Nueva</RouterLink>
+			<RouterLink :to="`/${idioma}`">Home</RouterLink>
+			<RouterLink :to="`/${idioma}/about`">About</RouterLink>
+			<RouterLink :to="`/${idioma}/nueva`">Nueva</RouterLink>
 		</nav>
 	</div>
 </template>

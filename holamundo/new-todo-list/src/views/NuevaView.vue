@@ -1,15 +1,8 @@
-<template>
-	<div class="about">
-		<h1>Página nueva</h1>
-	</div>
-</template>
+<script setup lang="ts">
+import NuevaTemplate from '@/components/templates/NuevaTemplate.vue'
 
-<style>
-@media (min-width: 1024px) {
-	.about {
-		min-height: 100vh;
-		display: flex;
-		align-items: center;
-	}
-}
-</style>
+</script>
+
+<template>
+	<NuevaTemplate />
+</template>

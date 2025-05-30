@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import HeaderOrg from "../organisms/HeaderOrg.vue";
-import HomeMain from "../organisms/HomeMain.vue";
+import AboutMain from "@/components/organisms/AboutMain.vue";
+import type { Idioma } from "@/types";
 import {ref} from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -13,5 +14,5 @@ const lang = ref<string | string[]>($route.params.lang)
 
 <template>
 	<HeaderOrg />
-	<HomeMain />
+	<AboutMain />
 </template>

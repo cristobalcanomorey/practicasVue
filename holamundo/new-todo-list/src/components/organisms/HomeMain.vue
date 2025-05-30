@@ -77,7 +77,12 @@ function setFilter(newFilter: TaskFilter){
 		<div>
 			<h1 v-if="items.length === 0">Crea una nueva tarea</h1>
 			<h1 v-else-if="doneItems.length === items.length">Todas completadas</h1>
-			<h1 v-else>Quedan <span>{{ items.length - doneItems.length }}</span> pendientes</h1>
+			<h1 v-else>
+				<!-- <i18n-t keypath="home.quedanNPendientes" :values="{n: items.length - doneItems.length }">
+					<span></span>
+				</i18n-t> -->
+				<!-- Quedan <span>{{ items.length - doneItems.length }}</span> pendientes -->
+			</h1>
 			<FilterButton filter='all' :active-filter="filter" @set-filter="setFilter">Todas</FilterButton>
 			<FilterButton filter='todo' :active-filter="filter" @set-filter="setFilter">Pendientes</FilterButton>
 			<FilterButton filter='completed' :active-filter="filter" @set-filter="setFilter">Completadas</FilterButton>

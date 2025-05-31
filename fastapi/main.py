@@ -13,10 +13,24 @@ if not os.path.exists(DATA_FILE):
     with open(DATA_FILE, "w") as f:
         json.dump([], f)
 
-class Item(BaseModel):
+
+class Task(BaseModel):
     id: int
-    name: str
-    description: str = ""
+    title: str
+    done: bool
+    priority: bool
+
+class Query(BaseModel):
+    single: bool
+    method: str
+    table: str
+    inner: list[str]
+    leftInner: list[list[str]]
+    fields: list[str]
+    where: str
+    paramsWhere: list[str]
+    order: list[str]
+
 
 def read_data():
     with open(DATA_FILE, "r") as f:
@@ -27,8 +41,8 @@ def write_data(data):
         json.dump(data, f, indent=4)
 
 # Create
-@app.post("/items/", response_model=Item)
-def create_item(item: Item):
+@app.post("/tasks/", response_model=Task)
+def create_item(item: Task):
     data = read_data()
     if any(i["id"] == item.id for i in data):
         raise HTTPException(status_code=400, detail="Item with this ID already exists")
@@ -37,12 +51,12 @@ def create_item(item: Item):
     return item
 
 # Read all
-@app.get("/items/", response_model=List[Item])
+@app.get("/tasks/", response_model=List[Task])
 def get_items():
     return read_data()
 
 # Read one
-@app.get("/items/{item_id}", response_model=Item)
+@app.get("/tasks/{item_id}", response_model=Task)
 def get_item(item_id: int):
     data = read_data()
     for item in data:
@@ -51,8 +65,8 @@ def get_item(item_id: int):
     raise HTTPException(status_code=404, detail="Item not found")
 
 # Update
-@app.put("/items/{item_id}", response_model=Item)
-def update_item(item_id: int, updated_item: Item):
+@app.put("/tasks/{item_id}", response_model=Task)
+def update_item(item_id: int, updated_item: Task):
     data = read_data()
     for index, item in enumerate(data):
         if item["id"] == item_id:
@@ -62,7 +76,7 @@ def update_item(item_id: int, updated_item: Item):
     raise HTTPException(status_code=404, detail="Item not found")
 
 # Delete
-@app.delete("/items/{item_id}")
+@app.delete("/tasks/{item_id}")
 def delete_item(item_id: int):
     data = read_data()
     for index, item in enumerate(data):

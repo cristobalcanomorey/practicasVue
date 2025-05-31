@@ -33,6 +33,7 @@ input {
 	font-size: 1rem;
 	outline: none;
 	transition: all 0.3s ease;
+	color: var(--color-text);
 }
 
 input:focus {

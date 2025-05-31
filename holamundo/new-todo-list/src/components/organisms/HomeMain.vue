@@ -4,7 +4,8 @@ import TaskForm from "@/components/molecules/TaskForm.vue";
 import TaskList from "@/components/molecules/TaskList.vue";
 import type { Task, TaskFilter } from "@/types";
 import { computed, ref } from "vue";
-const items = ref<Task[]>([]);
+import { apiDelTask, apiGetTasks, apiPutTask, apiUpdateTask  } from "@/services/homeApi";
+const items = ref<Task[]>(apiGetTasks());
 const filter = ref<TaskFilter>('all')
 const doneItems = computed<Task[]>(() => {
 	return items.value.filter((item) => { return item.done })
@@ -32,22 +33,20 @@ const filteredItems = computed(() => {
 
 let i = 0;
 function addItem(item: string, priority: boolean) {
+	const newTask = {
+		id: i,
+		title: item,
+		done: false,
+		priority: priority
+	} as Task
 	if (priority) {
-		items.value.unshift({
-			id: i,
-			title: item,
-			done: false,
-			priority: priority
-		});
+		items.value.unshift(newTask);
 	} else {
-		items.value.push({
-			id: i,
-			title: item,
-			done: false,
-			priority: priority
-		});
+		items.value.push(newTask);
 	}
 	i++;
+	// Put en API
+	apiPutTask(newTask)
 }
 
 function handleRemove(task: Task) {
@@ -55,17 +54,16 @@ function handleRemove(task: Task) {
 		return it.id !== task.id
 	})
 	i--
+	// DELETE en API
+	apiDelTask(task)
 }
 
 function toggleDone(task: Task) {
 	task.done = !task.done
-	// let taskToUpdate = items.value.find(item => item.id === task.id);
-	// if (taskToUpdate) {
-	// 	taskToUpdate.done = !taskToUpdate.done;
-	// }
 
+	apiUpdateTask(task)
 }
-function setFilter(newFilter: TaskFilter){
+function setFilter(newFilter: TaskFilter) {
 	filter.value = newFilter
 }
 </script>
@@ -106,5 +104,4 @@ main {
 span {
 	color: red;
 }
-
 </style>

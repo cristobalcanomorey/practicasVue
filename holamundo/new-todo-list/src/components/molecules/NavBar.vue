@@ -1,7 +1,28 @@
 <script lang="ts" setup>
 import HelloWorld from '@/components/atoms/HelloWorld.vue';
+import { IDIOMAS } from '@/constantes/constantes';
+import { ref } from 'vue'
+import type { Idioma } from '@/types';
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router';
 
-const idioma = document.documentElement.lang
+const router = useRouter()
+
+const { locale } = useI18n()
+
+const idioma = ref<Idioma>(document.documentElement.lang as Idioma)
+
+function cambiaIdioma() {
+	const currentPath = router.currentRoute.value.fullPath
+	const currentLang = IDIOMAS.find(sub => currentPath.includes(`/${sub}`))
+
+	const newPath = currentPath.replace(`/${currentLang}`, `/${idioma.value}`)
+
+	locale.value = idioma.value
+	document.documentElement.lang = idioma.value
+	router.push(newPath)
+}
+
 </script>
 
 <template>
@@ -12,6 +33,12 @@ const idioma = document.documentElement.lang
 			<RouterLink :to="`/${idioma}`">Home</RouterLink>
 			<RouterLink :to="`/${idioma}/about`">About</RouterLink>
 			<RouterLink :to="`/${idioma}/nueva`">Nueva</RouterLink>
+		</nav>
+		<nav>
+			<select v-model="idioma" @change="cambiaIdioma">
+				<option value="es">Español</option>
+				<option value="en">English</option>
+			</select>
 		</nav>
 	</div>
 </template>

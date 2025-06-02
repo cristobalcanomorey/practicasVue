@@ -1,3 +1,5 @@
+import { IDIOMAS, FILTROSTAREAS } from "./constantes/constantes";
+
 export interface Task {
 	id: number;
 	title: string;
@@ -5,5 +7,14 @@ export interface Task {
 	priority: boolean;
 }
 
-export type TaskFilter = "all" | "todo" | "completed" | "priority";
-export type Idioma = "es" | "en";
+export type TaskFilter = typeof FILTROSTAREAS[number];
+export type Idioma = typeof IDIOMAS[number];
+// export type Traducciones = {
+// 	[idioma in Idioma]: {
+// 		[seccion: string]: TraduccionEntry;
+// 	}
+// }
+// export type TraduccionEntry = {
+//   key: string;
+//   value: string;
+// };

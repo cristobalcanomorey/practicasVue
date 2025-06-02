@@ -1,4 +1,6 @@
-import type { Task } from "@/types";
+import type { Task, } from "@/types";
+
+
 //CRUD
 export function apiGetTasks():Task[]{
 	// Llamada a Api

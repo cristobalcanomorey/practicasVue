@@ -13,7 +13,7 @@ const emit = defineEmits<{
 }>()
 
 function handleRemove() {
-	console.log("Eliminando tarea...");
+	// console.log("Eliminando tarea...");
 	emit('remove', props.item)
 }
 // function handleDone(){

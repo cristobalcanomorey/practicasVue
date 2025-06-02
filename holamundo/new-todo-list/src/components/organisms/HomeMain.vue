@@ -5,6 +5,9 @@ import TaskList from "@/components/molecules/TaskList.vue";
 import type { Task, TaskFilter } from "@/types";
 import { computed, ref } from "vue";
 import { apiDelTask, apiGetTasks, apiPutTask, apiUpdateTask  } from "@/services/homeApi";
+import TraducirTexto from "../molecules/TraducirTexto.vue";
+
+const page = 'home'
 const items = ref<Task[]>(apiGetTasks());
 const filter = ref<TaskFilter>('all')
 const doneItems = computed<Task[]>(() => {
@@ -85,6 +88,10 @@ function setFilter(newFilter: TaskFilter) {
 			<FilterButton filter='todo' :active-filter="filter" @set-filter="setFilter">Pendientes</FilterButton>
 			<FilterButton filter='completed' :active-filter="filter" @set-filter="setFilter">Completadas</FilterButton>
 			<FilterButton filter='priority' :active-filter="filter" @set-filter="setFilter">Prioritarias</FilterButton>
+			<br>
+			<TraducirTexto :page="page" label="noExiste">Traduccion que no existe</TraducirTexto>
+			<br>
+			<TraducirTexto :page="page" label="noExiste">otra traduccion que no existe</TraducirTexto>
 			<!-- <BaseButton :type="'button'" :class="{ active: filter === 'all' }" @click="emit('setFilter', filter)">Todas</BaseButton>
 			<BaseButton :type="'button'" :class="{ active: filter === 'todo' }" @click="filter = 'todo'">Pendientes
 			</BaseButton>

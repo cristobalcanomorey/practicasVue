@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import HelloWorld from '@/components/atoms/HelloWorld.vue';
+import TraducirTexto from '@/components/molecules/TraducirTexto.vue';
 import { IDIOMAS } from '@/constantes/constantes';
 import { ref } from 'vue'
 import type { Idioma } from '@/types';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router';
+
 
 const router = useRouter()
 
@@ -27,10 +29,14 @@ function cambiaIdioma() {
 
 <template>
 	<div class="wrapper">
-		<HelloWorld msg="You did it!" />
+		<HelloWorld :msg="$t('nav.web')" />
 
 		<nav>
-			<RouterLink :to="`/${idioma}`">Home</RouterLink>
+			<RouterLink :to="`/${idioma}`">
+				<TraducirTexto page="nav" label="inicio" raiz="div">
+					<span>Inicio</span>
+				</TraducirTexto>
+			</RouterLink>
 			<RouterLink :to="`/${idioma}/about`">About</RouterLink>
 			<RouterLink :to="`/${idioma}/nueva`">Nueva</RouterLink>
 		</nav>

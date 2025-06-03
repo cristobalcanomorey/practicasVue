@@ -1,32 +1,110 @@
 <script lang="ts" setup>
-import {  computed, useSlots, onMounted, inject } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed, useSlots, onMounted, inject, watch } from 'vue'
 import type { I18n as I18nType } from 'vue-i18n'
+import { ref } from 'vue'
+import type { Ref } from 'vue'
+import type { Idioma } from '@/types'
+import { createI18n } from 'vue-i18n'
+import { useTraducciones } from '@/composables/traductorManager'
 // import {TraductorManager} from '@/composables/traductorManager'
 const slots = useSlots()
-const { messages, locale } = useI18n()
+
+const manager = useTraducciones()
+
+
+// const { messages, locale } = useI18n()
 const props = defineProps<{
 	page: string
 	label: string
 	raiz?: string
 }>()
 
-const i18nInstance = inject<I18nType | null>('i18n', null)
-const translate = (key: string) => {
-  //  Si aún no existía, devolvemos la misma key (o un string vacío)
-  if (!i18nInstance) return ''
-  return i18nInstance.global.t(key)
-}
+const existeTraduccion = computed(()=>manager.value.existeTraduccion(manager.value.idioma.value, props.page, props.label))
+
+// const i18nInstance = inject<Ref<I18nType | null>>(
+// 	'i18nInstance',
+// 	ref(null)
+// )!
+// const loadingTraduccion = inject<Ref<boolean>>(
+// 	'loadingTraduccion',
+// 	ref(true)
+// )!
+
+// const t = ref<(key: string) => string>((key) => '')
+
+// const messages = inject<Ref<object>>(
+// 	'messages',
+// 	ref({} as Record<Idioma, Record<string, object>>)
+// )
+
+// const funcTrad = computed(() => {
+// 	if (Object.keys(messages.value).length === 0) {
+// 		return () => 'no ha cargado...'
+// 	} else {
+// 		// newMessages.value = messages.value as 
+// 		const localI18n = createI18n({
+// 			legacy: false,
+// 			locale: import.meta.env.VITE_DEFAULT_LOCALE, // ej. "es" o "en"
+// 			fallbackLocale: 'es',
+// 			messages: messages.value as Record<Idioma, Record<string, object>>,
+// 		});
+
+// 		i18nInstance.value = localI18n as I18nType;
+// 		// Ahora t() será la función de traducción
+// 		// loading.value = false;
+// 		return localI18n.global.t
+// 	}
+// })
+
+// const translate = inject<Ref<(key: string) => string>>(
+// 	'translate',
+// 	ref((key: string) =>{
+// 		if (!i18nInstance.value) return ''
+// 	return i18nInstance.value.global.t(key)
+// 	})
+// )
+
+// const traducir = computed(() => {
+// 	if (loadingTraduccion.value || i18nInstance.value === null) {
+// 		return (key: string) => key + ' no va'
+// 	} else {
+// 		return i18nInstance.value.global.t
+// 	}
+// })
+
+// const translate = (key: string) => {
+// 	//  Si aún no existía, devolvemos la misma key (o un string vacío)
+// 	if (!i18nInstance.value) return ''
+// 	return i18nInstance.value.global.t(key)
+// }
 // const loading = inject('loadingTraduccion') as Ref<boolean>
 
-const tieneTraduccion = computed<boolean>(() => {
-	// 1. Obtenemos el objeto de esa página/idioma
-	const msgsPorIdioma = (messages.value as Record<string, object>)[locale.value] as Record<string, object> | undefined
-	const paginaObj = msgsPorIdioma ? (msgsPorIdioma[props.page] as Record<string, string> | undefined) : undefined
+// const tieneTraduccion = computed<boolean>(() => {
+// 	console.log('no carga')
+// 	if (loadingTraduccion.value) {
+// 		return false
+// 	}
+// 	return true
+// 	if (i18nInstance.value === null) {
+// 		return false
+// 	}
+// 	console.log('ha cargado')
+// 	const { messages, locale } = i18nInstance.value.global as {
+// 		messages: Record<string, any>
+// 		locale: Ref<string>
+// 	}
+// 	console.log(i18nInstance)
+// 	if (!messages || !locale) {
+// 		return false
+// 	}
+// 	// 1. Obtenemos el objeto de esa página/idioma
+// 	const idiomaActual = locale.value
+// 	const msgsPorIdioma = (messages.value as Record<string, object>)[idiomaActual] as Record<string, object> | undefined
+// 	const paginaObj = msgsPorIdioma ? (msgsPorIdioma[props.page] as Record<string, string> | undefined) : undefined
 
-	// 2. Verificamos que exista y que contenga la clave 'label'
-	return !!(paginaObj && Object.prototype.hasOwnProperty.call(paginaObj, props.label))
-})
+// 	// 2. Verificamos que exista y que contenga la clave 'label'
+// 	return !!(paginaObj && Object.prototype.hasOwnProperty.call(paginaObj, props.label))
+// })
 
 const defaultText = computed<string>(() => {
 	if (!slots.default) {
@@ -43,51 +121,34 @@ const defaultText = computed<string>(() => {
 	return ''
 })
 
-// const haLogueado = ref<boolean>(false)
-
-onMounted( async () => {
-	// usar composable TraductorManager para hacer 1 petición a Api por página para el get y 1 petición por pagina-label para el insert
-	// const promesa = await TraductorManager.getPromesa(props.page)
-	// if(promesa){
-
-	// }
-	// Si carga promesa pero no existe el label se hace insert al api con defaultText
-	// revisar si tiene traducción o promesa
-
+onMounted(()=>{
+	manager.value.guardaOriginal(manager.value.idioma.value, props.page, props.label, defaultText.value)
 })
-// watch(
-// 	[tieneTraduccion, () => locale.value, () => props.page, () => props.label],
-// 	([actualTiene, nuevaLocale, nuevaPage, nuevaLabel]) => {
-// 		if (!actualTiene && !haLogueado.value) {
-// 			// console.log(
-// 			// 	`Guardando traducción por defecto para '${props.label}' en '${locale.value}.${props.page}':`,
-// 			// 	defaultText.value || '<slot vacío o no-texto>'
-// 			// )
-// 			TraductorManager.insertTraduccion(props.page, props.label, defaultText.value)
-// 			haLogueado.value = true // no funciona, repite los inserts
-// 		}
-// 		// Si luego aparece la traducción (o cambia page/label a algo que sí existe), reseteamos el flag
-// 		if (actualTiene) {
-// 			haLogueado.value = false
-// 		}
-// 	},
-// 	{ immediate: true }
-// )
+
+
+// const cargando = computed(() => {
+// 	console.log(typeof loadingTraduccion)
+// 	return loadingTraduccion
+// })
+
+
 
 </script>
 
 <template>
-	<template v-if="!i18nInstance">
+	<template v-if="manager.cargandoTraducciones">
 		<!-- Hacer que muestre un esqueleto mientras carga -->
 		<p>Cargando con skeleton ...</p>
 	</template>
 	<template v-else>
-		<template v-if="tieneTraduccion">
-			<component v-if="raiz" :is="raiz" v-html="translate(`${page}.${label}`)" />
-			<template v-else>{{ translate(`${page}.${label}`) }}</template> 
+		<!-- {{ traducir(`${page}.${label}`) }} -->
+		<template v-if="existeTraduccion">
+			<component v-if="raiz" :is="raiz" v-html="manager.getTraduccion(manager.idioma.value,page,label,defaultText)" />
+			<template v-else>{{ manager.getTraduccion(manager.idioma.value,page,label,defaultText) }}</template>
 		</template>
 		<template v-else>
-			<slot> </slot>
+			<!-- por defecto pilla lo del slot -->
+			<slot> </slot> 
 		</template>
 	</template>
 </template>

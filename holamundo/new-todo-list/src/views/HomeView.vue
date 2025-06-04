@@ -1,19 +1,20 @@
 <script lang="ts" setup>
 import HomeTemplate from "@/components/templates/HomeTemplate.vue";
 import { mountTraducciones } from '@/composables/traductorManager'
-import { onMounted, ref, provide } from "vue";
+import { onMounted, ref, provide, watch } from "vue";
 import { getPaginas } from "@/services/generalApi";
 import { IDIOMAS } from "@/constantes/constantes";
 import type { Idioma } from "@/types";
-import { createI18n } from 'vue-i18n'
-import type { I18n as I18nType } from 'vue-i18n'
 
+console.log("[HomeView] Arrancando setup...");
 const manager = mountTraducciones()
+const currentPage = 'Home';
 // const i18nInstance = ref<I18nType | null>(null) 
 // const t = ref<(key: string) => string>(() => '') // función dummy mientras carga
 const loading = ref<boolean>(true)
 // record o null
 
+// console.log("[HomeView] manager setup:", manager.value);
 
 // provide('loadingTraduccion', loading)
 // provide('i18n', i18nInstance)
@@ -25,22 +26,29 @@ const loading = ref<boolean>(true)
 
 onMounted(async () => {
 	console.log('cargando async')
-	const paginas = (await getPaginas()) as { id: number; pagina: string }[];
+	//Labels asociados a la página home
+	// const paginas = (await getPaginas()) as { id: number; pagina: string }[];
+	// console.log('paginas', paginas)
 
 	// const messages: Record<Idioma, Record<string, object>> = {} as Record<Idioma, Record<string, object>>;
+	const promises = []
+	manager.value.getTraduccionesDeComponentes(manager.value.getIdioma(), currentPage);
+	const respuestaApi = manager.value.getApiTraducciones(manager.value.getIdioma(), currentPage)
+	promises.push(respuestaApi)
 
-	let promises = []
-	for (const idioma of IDIOMAS) {
-	
-		//promise.all
-		for (const pag of paginas) {
-			const promesa = manager.value.getTraducciones(idioma, pag.pagina);
-			//crear nuevo messages
-			promises.push(promesa)
-		}
-	}
 
-	const response = await Promise.all(promises) 
+	const response = ref(await Promise.all(promises))
+	watch(response, (newResponse) => {
+		// console.log('watch response', newResponse)
+		manager.value.appendTraducciones(newResponse) //cuando responde la API, añade las traducciones
+		// console.log('messages', manager.value.messages.value)
+		// console.log('nuevas', manager.value.nuevasT.value)
+	}, { immediate: true })
+	//Aquí ya ha recorrido todos los componentes TraducirTexto y ha recogido las nuevas traducciones
+	// manager.value.limpiaNuevasT() //Elimina las nuevas
+	// console.log('response en ', currentPage, response)
+	// console.log('messages', JSON.stringify(manager.value.messages.value))
+	// console.log('nuevas', JSON.stringify(manager.value.nuevasT.value))
 
 	// const localI18n = createI18n({
 	// 	legacy: false,

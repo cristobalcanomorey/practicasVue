@@ -1,188 +1,250 @@
 // src/composables/useLoadLocale.ts
 import { ApiTraductor } from '@/services/translationApi'
-import { objectHasPath, diffKeys, haveSameKeysDeep, getDeepMissing, mergeDeep } from '@/composables/helpers';
-import type { AnyObject, Idioma } from '@/types';
-import { inject, provide, ref, type Ref } from 'vue';
-import type { Traducciones } from '@/types.ts'
+import { objectHasPath, filtrarNuevasTraduccionesNoExistentes } from '@/composables/helpers';
+import type { AnyObject, Idioma, TraduccionItem } from '@/types';
+import { inject, provide, shallowRef, isRef, ref, type Ref, watch } from 'vue';
+import type { Traducciones, NuevasTraducciones } from '@/types.ts'
 import { IDIOMAS } from '@/constantes/constantes';
 
 
 export function mountTraducciones() {
-	const manager = ref<TraductorManager>(new TraductorManager())
+	//Parece ser que con ref normal se sacan los value fuera de los refs del objeto TraductorManager y pierde la reactividad
+	//Por eso se usa shallowRef, para que no se pierda la reactividad de los refs dentro de TraductorManager
+	const manager = shallowRef<TraductorManager>(new TraductorManager())
 	provide('TraductorManager', manager)
 	return manager
 }
 
 export function useTraducciones() {
 	const manager = inject("TraductorManager") as Ref<TraductorManager>
+	if (!manager) {
+		throw new Error("TraductorManager no fue proporcionado")
+	}
 	return manager
 }
 
 
-class TraductorManager  {
+class TraductorManager {
+	public idioma: Ref<Idioma> = ref(document.documentElement.lang as Idioma)
 
-	private messages = ref<Traducciones>({} as Traducciones)
+	public idiomasBuscados: Ref<Idioma[]> = ref([]) // Aquí se guardan los idiomas que se han buscado en la API
+	private deLaApi: Ref<TraduccionItem[]> = ref([] as TraduccionItem[]) // Aquí se guardan las traducciones obtenidas de la API
+	public messages = ref<TraduccionItem[]>([] as TraduccionItem[]) // Aquí se guardan las traducciones obtenidas de la API
 	//recoge los mensajes de los slots de cada componente TraducirTexto
-	private originales = ref<Traducciones>({} as Traducciones)
-	public cargandoTraducciones = ref<boolean>(false)
-	public idioma = ref<Idioma>(import.meta.env.VITE_DEFAULT_LOCALE)
+	public nuevasT = ref<NuevasTraducciones>([] as NuevasTraducciones)
+	public cargandoTraducciones: Ref<boolean> = ref(false)
+	// Los labels que se usan en la página actual
+	public labelsRelevantes = ref<string[]>([])
 	private api
 
 	public constructor() {
-		for (const idioma of IDIOMAS) {
-			this.messages.value[idioma] = {}
-		}
-		this.api = new ApiTraductor(this.idioma.value)
+		// console.log(
+		// 	"[TraductorManager.constructor] document.documentElement.lang =",
+		// 	document.documentElement.lang
+		// );
+		// console.log("[TraductorManager] nueva instancia creada:", this);
+		this.setIdioma(document.documentElement.lang as Idioma)
+
+
+		// for (const idioma of IDIOMAS) {
+		// 	this.messages.value[idioma] = {}
+		// }
+		this.api = new ApiTraductor()
+
 	}
 
-	public guardaOriginal(idioma: Idioma, page: string, label: string, original: string) {
+	public getIdioma(): Idioma {
+		// console.log("[getIdioma] this.idioma (ref) =", this.idioma);
+		return this.idioma.value
+	}
+	public setIdioma(nuevo: Idioma) {
+		if (isRef(this.idioma)) {
+			this.idioma.value = nuevo;
+		} else {
+			// En caso de que Vue ya lo envolviera a “string”, lo restauramos:
+			this.idioma = ref(nuevo);
+		}
+		this.idiomasBuscados.value.push(nuevo);
+		// console.log("[setIdioma] ahora this.idioma.value =", this.idioma.value);
+	}
+
+	// public limpiaNuevasT(){
+	// 	console.log('Limpia nuevas traducciones', this.nuevasT.value, this.messages.value)
+	// 	for(const nueva of this.nuevasT.value) {
+	// 		// Si la traducción ya existe en messages, la eliminamos de nuevasT
+	// 		if (this.existeTraduccion(nueva.idioma, nueva.page, nueva.label)) {
+	// 			console.log('Eliminando traducción existente:', nueva)
+	// 			this.nuevasT.value = this.nuevasT.value.filter(t => t !== nueva)
+	// 		}
+	// 	}
+	// }
+
+	public guardaNueva(idioma: Idioma, page: string, label: string, original: string) {
 		// mete dentro de originales
-		let textoOriginal = {
-			[idioma]: {
-				[page]: {
-					[label]: original
-				}
-			}
-		} as Traducciones
-		let originalesCompleto = mergeDeep(this.originales.value, textoOriginal)
-		this.originales.value = originalesCompleto
+		const nuevaTraduccion = {
+			idioma: idioma,
+			page: page,
+			label: label,
+			traduccion: original
+		} as TraduccionItem
+
+		this.nuevasT.value.push(nuevaTraduccion)
+		if (!this.existeTraduccion(idioma, page, label)) {
+			// console.log('en ', this.messages.value, ' no existe, se guarda nueva traducción:', nuevaTraduccion)
+			this.messages.value.push(nuevaTraduccion);
+		}
 	}
 
 	public existeTraduccion(idioma: Idioma, page: string, label: string): boolean {
 		// messages.value['idioma']['page']['label'] existe?
-		const langs = this.messages.value;
-		if (!langs || typeof langs !== "object") return false;
+		// const langs = this.messages.value 
+		// if (!langs || typeof langs !== "object") return false;
 
-		const langObj = langs[idioma];
-		if (!langObj || typeof langObj !== "object") return false;
+		// const langObj = langs[idioma] 
+		// if (!langObj || typeof langObj !== "object") return false;
 
-		const pageObj = langObj[page];
-		if (!pageObj || typeof pageObj !== "object") return false;
+		// const pageObj = langObj[page] 
+		// if (!pageObj || typeof pageObj !== "object") return false;
 
-		return label in pageObj;
+		// const key = label.trim();
+		// return Object.prototype.hasOwnProperty.call(pageObj, key);
+		return this.messages.value.some(
+			item =>
+				item.idioma === idioma &&
+				item.page === page &&
+				item.label === label
+		);
 	}
 
 	public getTraduccion(idioma: Idioma, page: string, label: string, defecto: string | null = null): string {
 		/**
 		 * Si la traducción existe en messages la devuelve en su idioma
 		 * 
-		 * Si no existe hace devuelve el defecto
+		 * Si no existe devuelve el defecto
 		 */
-		const valor = this.messages.value[idioma]?.[page]?.[label]
-		if (typeof valor === "string") {
-			return valor;
+		// const valor = this.messages.value[idioma]?.[page]?.[label]
+		// if (typeof valor === "string") {
+		// 	return valor;
+		// }
+		const response = this.messages.value.find(
+			item => item.idioma === idioma && item.page === page && item.label === label
+		);
+		if (response) {
+			// console.log(`Traducción encontrada: ${response.traduccion}`);
+			return response.traduccion;
 		}
-		if(defecto === null){
+		if (defecto === null) {
 			console.warn('Hay que poner texto en el slot para que se muestre por defecto y se pueda hacer su insert en la api')
 		}
 		return defecto ?? ''
 	}
 
-	private async getApiTraducciones(idioma: Idioma, page: string): Promise<Traducciones> {
+	public async getApiTraducciones(idioma: Idioma, page: string): Promise<TraduccionItem[]> {
 		/**
 		 */
 		this.cargandoTraducciones.value = true
 
 		// Llama a la API
-		let trad = this.api.getTraduccionesPaginaAsync(idioma, page)
-		return trad 
+		const trad = this.api.getTraduccionesPaginaAsync(idioma, page)
+		return trad
 	}
 
-	public async getTraducciones(idioma: Idioma, page: string): Promise<Traducciones> {
-		console.log('Obtiene las traducciones en ' + idioma + ' de: ' + page)
+	public getTraduccionesDeComponentes(idioma: Idioma, page: string): TraduccionItem[] {
+		console.log('Obtiene las traducciones de: ' + page);
+		this.cargandoTraducciones.value = true;
 
 		/**
 		 * Si la página existe en messages le pasa messages
 		 */
-		if (objectHasPath(this.messages.value, `${idioma}.${page}`)) {
-			return this.messages.value
+		if (objectHasPath(this.messages.value, `${this.idioma.value}.${page}`)) {
+			this.cargandoTraducciones.value = false;
+			return this.messages.value;
 		}
 
 		/**
 		 * Si no existe lo pregunta a la api
 		 */
-		let respuesta = await this.getApiTraducciones(idioma, page)
-		this.cargandoTraducciones.value = false
-		this.messages.value = respuesta
+		// const respuesta = await this.getApiTraducciones(idioma, page); 
+
+		// for (const item of respuesta) {
+		//     if(item) {
+		//         item.idioma = idioma; // Aseguramos que cada item tenga el idioma
+		//         this.messages.value.push(item);
+		//     }
+		// }
 
 		/**
 		 * Si lo que encuentra la api no coincide con originales
-		 * 		por cada originales que falten en la respuesta hace su insert a api
+		 * por cada originales que falten en la respuesta hace su insert a api
 		 */
-		let diferencia = getDeepMissing(this.messages.value, this.originales.value)
-		if (Object.keys(diferencia).length !== 0) { //en originales hay más cosas que en el api
-			this.setApiTraducciones(diferencia)
-			// Después, fusionamos en messages solo las ramas faltantes
-			this.messages.value = mergeDeep(this.messages.value, diferencia);
+		const diferencia = filtrarNuevasTraduccionesNoExistentes(this.messages.value, this.nuevasT.value);
+		if (diferencia.length !== 0) {
+			this.setApiTraducciones(diferencia);
+			this.messages.value.push(...diferencia);
 		}
 
-		return diferencia as Traducciones
+		return this.messages.value;
 
-
-		// const promes = (this.prom as Record<string, object>)[page] as Record<string, object> | undefined;
-		// // console.log("getPromesa", page, promes);
-		// if (promes) {
-		// 	return promes;
-		// }
-		// const paginaTrad = await Traductor.getTraduccionesPaginaAsync(idioma, page) as Promise<Record<string, string>>;
-		// this.setPromesaPagina(page, paginaTrad);
-		// const result: Record<string, object> = {};
-		// result[page] = paginaTrad;
-		// return result;
 	}
 
-	// async setTraduccionesPagina(page: string, traducciones: Promise<Record<string, string>> | Record<string, string>) {
-	// 	// if (traducciones instanceof Promise) {
-	// 	// 	traducciones = await traducciones;
-	// 	// }
-	// 	// Object.keys(traducciones).forEach((key) => {
-	// 	// 	const value = traducciones[key] as string;
-	// 	// 	if (typeof value === 'string' && value !== null) {
-	// 	// 		TraductorManager.setTraduccion(page, key, value);
-	// 	// 	}
-	// 	// });
-	// }
-
-	private async setApiTraducciones(trad: Partial<Traducciones>) {
-		let promises: Promise<unknown>[] = []
-		for (const page of Object.keys(trad)) {
-			const pageObj = trad[page as keyof Partial<Traducciones>];
-
-			// Si existe un objeto de etiquetas para esa página…
-			if (pageObj && typeof pageObj === "object") {
-				// Recorremos cada "label" dentro de esa página
-				for (const label of Object.keys(pageObj as AnyObject)) {
-					const value = (pageObj as AnyObject)[label] as string;
-
-					// Aquí llamamos a tu método (ahora solo hace console.log, 
-					// luego insertará en la base de datos)
-					const promesa = this.setApiTraduccion(page, label, value);
-					this.setTraduccion(page, label, value)
-					promises.push(promesa)
+	public appendTraducciones(trad: TraduccionItem[][]) {
+		// Flatten the array of arrays and filter unique translations in a single pass
+		// const flattenedTrad = trad.flat();
+		// for (const t of flattenedTrad) {
+		// 	if (t && t.idioma && t.page && t.label && !this.existeTraduccion(t.idioma, t.page, t.label)) {
+		// 		this.messages.value.push(t);
+		// 	}
+		// }
+		// Ensure we clear the loading state
+		// this.cargandoTraducciones.value = false;
+		for (const traducciones of trad) {
+			for (const t of traducciones) {
+				t.idioma = t.idioma || this.idioma.value; // Aseguramos que cada item tenga el idioma
+				if (t.page && t.label && !this.existeTraduccion(t.idioma, t.page, t.label)) {
+					this.messages.value.push(t);
+					this.deLaApi.value.push(t); // Guardamos también en deLaApi
 				}
 			}
 		}
-		await Promise.all(promises)
 	}
 
-	private async setApiTraduccion(page: string, label: string, value: string) {
 
-		const idioma = 'es' as Idioma
-		/**
-		 * hace insert en la API
-		 */
-		console.log('En construcción...')
-		console.log(`Haciendo insert de: Página = ${page}, Label = ${label}, Value = ${value}`)
+	private setApiTraducciones(trad: NuevasTraducciones) {
 
-		this.api.insertTraduccion(this.idioma.value, page,label,value)
-		// const p = (this.prom as Record<string, object>)[page] as Record<string, string> | undefined;
-		// if (!p) {
-		// 	const l = { key: label, value: value } as Record<string, string> | undefined;
-		// 	// Llamada a Api para guardar la traducción
-		// 	console.log("setPromesa", page);
-		// 	Traductor.insertTraduccion(page, label, value);
+		for (const nueva of trad) {
+			this.api.insertTraduccion(nueva.idioma ? nueva.idioma : '', nueva.page, nueva.label, nueva.traduccion)
+		}
+		// const promises: Promise<unknown>[] = []
+		// for (const page of Object.keys(trad)) {
+		// 	const pageObj = trad[page as keyof NuevasTraducciones];
+
+		// 	// Si existe un objeto de etiquetas para esa página…
+		// 	if (pageObj && typeof pageObj === "object") {
+		// 		// Recorremos cada "label" dentro de esa página
+		// 		for (const label of Object.keys(pageObj as AnyObject)) {
+		// 			const value = (pageObj as AnyObject)[label] as string;
+
+		// 			// Aquí llamamos a tu método (ahora solo hace console.log, 
+		// 			// luego insertará en la base de datos)
+		// 			const promesa = this.setApiTraduccion(page, label, value);
+		// 			this.setTraduccion(page, label, value)
+		// 			promises.push(promesa)
+		// 		}
+		// 	}
 		// }
+		// await Promise.all(promises)
 	}
+
+	// private async setApiTraduccion(page: string, label: string, value: string) {
+	// 	/**
+	// 	 * hace insert en la API
+	// 	 */
+	// 	console.log('En construcción...')
+	// 	console.log(`Haciendo insert de: Página = ${page}, Label = ${label}, Value = ${value}`)
+
+	// 	this.api.insertTraduccion(this.idioma.value, page, label, value)
+
+	// }
 
 	private setTraduccion(page: string, label: string, value: string) {
 		/**

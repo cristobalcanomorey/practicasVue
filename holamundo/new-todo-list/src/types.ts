@@ -12,6 +12,13 @@ export type Idioma = typeof IDIOMAS[number];
 
 export type AnyObject = { [key: string]: any };
 
+export type TraduccionItem = {
+	idioma?: Idioma;
+	page: string;
+	label: string;
+	traduccion: string;
+};
+
 /**
  * ej: 
  * {
@@ -22,15 +29,23 @@ export type AnyObject = { [key: string]: any };
  * 	}
  * }
  */
-export type Traducciones =
-	Record<
-		Idioma, Record<
-			string, Record<
-				string, string
-			>
-		>
-	>;
-	
+export type Traducciones = {
+	[lang in Idioma]?: {
+		[key: string]: {
+			[key: string]: string;
+		};
+	};
+};
+
+// export type NuevaTraduccion = {
+// 	idioma: Idioma;
+// 	page: string;
+// 	label: string;
+// 	traduccion: string;
+// }
+
+export type NuevasTraducciones = Array<TraduccionItem>;
+
 // export type Traducciones = {
 // 	[idioma in Idioma]: {
 // 		[seccion: string]: TraduccionEntry;

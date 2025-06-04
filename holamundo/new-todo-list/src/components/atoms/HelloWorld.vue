@@ -8,7 +8,7 @@ defineProps<{
 	<div class="greetings">
 		<h1 class="green">{{ msg }}</h1>
 		<h3>
-			{{ $t('nav.esUnaWeb') }}
+			<!-- {{ $t('nav.esUnaWeb') }} -->
 		</h3>
 	</div>
 </template>

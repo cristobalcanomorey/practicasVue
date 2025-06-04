@@ -2,15 +2,19 @@
 import HelloWorld from '@/components/atoms/HelloWorld.vue';
 import TraducirTexto from '@/components/molecules/TraducirTexto.vue';
 import { IDIOMAS } from '@/constantes/constantes';
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import type { Idioma } from '@/types';
-import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router';
-
+import { mountTraducciones } from '@/composables/traductorManager';
+// import { useTraducciones } from '@/composables/traductorManager';
+const manager = mountTraducciones()
 
 const router = useRouter()
+const currentPage = 'NavBar';
 
-const { locale } = useI18n()
+// const manager = useTraducciones()
+
+// manager.value.labels.value = ['']
 
 const idioma = ref<Idioma>(document.documentElement.lang as Idioma)
 
@@ -20,22 +24,58 @@ function cambiaIdioma() {
 
 	const newPath = currentPath.replace(`/${currentLang}`, `/${idioma.value}`)
 
-	locale.value = idioma.value
 	document.documentElement.lang = idioma.value
 	router.push(newPath)
+	manager.value.setIdioma(idioma.value)
 }
+
+onMounted(async () => {
+	const promises = []
+	manager.value.getTraduccionesDeComponentes(manager.value.getIdioma(),currentPage);
+	const respuestaApi = manager.value.getApiTraducciones(manager.value.getIdioma(), currentPage)
+	promises.push(respuestaApi)
+	
+
+	const response = ref(await Promise.all(promises) )
+	watch(response, (newResponse) => {
+		console.log('watch response', newResponse)
+		manager.value.cargandoTraducciones.value = false
+		// porqué no se actualiza el manager?
+		manager.value.appendTraducciones(newResponse) //cuando responde la API, añade las traducciones
+		console.log('messages', manager.value.messages.value)
+		console.log('nuevas', manager.value.nuevasT.value)
+	}, { immediate: true })
+	
+	// manager.value.appendTraducciones(response)
+	// for (const res of response) {
+	// 	if (res) {
+	// 	}
+	// }
+	// manager.value.limpiaNuevasT()
+});
 
 </script>
 
 <template>
 	<div class="wrapper">
-		<HelloWorld :msg="$t('nav.web')" />
+		<HelloWorld msg="cosa" />
 
 		<nav>
-			<RouterLink :to="`/${idioma}`">
-				<TraducirTexto page="nav" label="inicio" raiz="div">
-					<span>Inicio</span>
+			<!-- <RouterLink :to="`/${idioma}`">
+				<TraducirTexto :page="currentPage" label="prueba" raiz="div">
+					<span>NoCambia</span>
 				</TraducirTexto>
+			</RouterLink>
+			<RouterLink :to="`/${idioma}`">
+				<TraducirTexto :page="currentPage" label="inicio2">
+					Ya existe
+				</TraducirTexto>
+			</RouterLink> -->
+			<RouterLink to="home">
+				<TraducirTexto :page="currentPage" label="inicio" >
+					Inicio
+				</TraducirTexto>
+				
 			</RouterLink>
 			<RouterLink :to="`/${idioma}/about`">About</RouterLink>
 			<RouterLink :to="`/${idioma}/nueva`">Nueva</RouterLink>

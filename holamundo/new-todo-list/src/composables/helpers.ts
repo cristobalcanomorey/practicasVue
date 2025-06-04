@@ -1,6 +1,76 @@
-import type { AnyObject } from "@/types";
+import type { AnyObject, Traducciones, NuevasTraducciones, NuevaTraduccion, Idioma , TraduccionItem} from "@/types";
 
-export function objectHasPath(obj: any, path: string): boolean {
+export function existeEnTraducciones(
+	nueva: NuevaTraduccion,
+	traducciones: Traducciones
+): boolean {
+	// Si no existe el idioma, devuelve false (no existe en traducciones)
+	const porIdioma = traducciones[nueva.idioma]
+	if (!porIdioma) return false
+
+	// Si no existe la página para ese idioma, devuelve false
+	const porPagina = porIdioma[nueva.page]
+	if (!porPagina) return false
+
+	// Comprueba si existe ese label dentro de la página
+	return Object.prototype.hasOwnProperty.call(porPagina, nueva.label)
+}
+
+// export function existeNuevaTraduccion(
+// 	nueva: NuevaTraduccion,
+// 	nuevasT: NuevasTraducciones
+// ): boolean {
+// 	return nuevasT.some(t =>
+// 		t.idioma === nueva.idioma &&
+// 		t.page === nueva.page &&
+// 		t.label === nueva.label
+// 	);
+// }
+
+export function filtrarNuevasTraduccionesNoExistentes(
+	traducciones: TraduccionItem[],
+	nuevas: NuevasTraducciones
+): NuevasTraducciones {
+	const existentes = new Set(
+		traducciones.map(t => `${t.idioma ?? ''}|${t.page}|${t.label}`)
+	);
+
+	return nuevas.filter(nueva => {
+		const clave = `${nueva.idioma ?? ''}|${nueva.page}|${nueva.label}`;
+		return !existentes.has(clave);
+	});
+}
+
+export function mergeTraduccionesExistentes(
+	traducciones: Traducciones,
+	nuevas: NuevasTraducciones
+): Traducciones {
+	const resultado: Traducciones = {} as Traducciones;
+
+	for (const idioma of Object.keys(traducciones) as Idioma[]) {
+		resultado[idioma] = {};
+
+		for (const page in traducciones[idioma]) {
+			resultado[idioma][page] = { ...traducciones[idioma][page] };
+		}
+	}
+
+	for (const { idioma, page, label, text } of nuevas) {
+		if (!resultado[idioma]) {
+			resultado[idioma] = {};
+		}
+		if (!resultado[idioma][page]) {
+			resultado[idioma][page] = {};
+		}
+		resultado[idioma][page][label] = text;
+	}
+
+	return resultado;
+}
+
+
+
+export function objectHasPath(obj: AnyObject, path: string): boolean {
 	return path.split('.').every(key => {
 		if (obj && typeof obj === 'object' && key in obj) {
 			obj = obj[key];
@@ -94,39 +164,40 @@ export function getDeepMissing<A extends AnyObject, B extends AnyObject>(
  * @returns La fusión de ambos objetos
  */
 export function mergeDeep<T extends AnyObject>(
-  target: T,
-  source: Partial<T>
+	target: T,
+	source: Partial<T>
 ): T {
-  for (const key of Object.keys(source)) {
-    const valSource = (source as AnyObject)[key];
+	for (const key of Object.keys(source)) {
+		const valSource = (source as AnyObject)[key];
 
-    // Si en source es un objeto literal (no null, no array)...
-    const isObjectSource =
-      typeof valSource === 'object' &&
-      valSource !== null &&
-      !Array.isArray(valSource);
+		// Si en source es un objeto literal (no null, no array)...
+		const isObjectSource =
+			typeof valSource === 'object' &&
+			valSource !== null &&
+			!Array.isArray(valSource);
 
-    if (isObjectSource) {
-      // Si target ya tiene esa clave y es también objeto literal, descendemos
-      if (
-        key in target &&
-        typeof (target as AnyObject)[key] === 'object' &&
-        (target as AnyObject)[key] !== null &&
-        !Array.isArray((target as AnyObject)[key])
-      ) {
-        
-        mergeDeep((target as AnyObject)[key], valSource);
-      } else {
-        // Si target no tenía esa clave, la “prendemos” entera copiando el objeto origen
-        (target as AnyObject)[key] = valSource;
-      }
-    } else {
-      // Si no es un objeto (cadena, número, etc.), simplemente asignamos
-      (target as AnyObject)[key] = valSource;
-    }
-  }
+		if (isObjectSource) {
+			// Si target ya tiene esa clave y es también objeto literal, descendemos
+			if (
+				console.log(key, target),
+				key in target &&
+				typeof (target as AnyObject)[key] === 'object' &&
+				(target as AnyObject)[key] !== null &&
+				!Array.isArray((target as AnyObject)[key])
+			) {
 
-  return target;
+				mergeDeep((target as AnyObject)[key], valSource);
+			} else {
+				// Si target no tenía esa clave, la “prendemos” entera copiando el objeto origen
+				(target as AnyObject)[key] = valSource;
+			}
+		} else {
+			// Si no es un objeto (cadena, número, etc.), simplemente asignamos
+			(target as AnyObject)[key] = valSource;
+		}
+	}
+
+	return target;
 }
 
 export function diffKeys<A extends object, B extends object>(a: A, b: B): Partial<B> {
